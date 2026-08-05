@@ -31,7 +31,11 @@ rm -f /etc/nginx/sites-enabled/zin_hy2
 rm -f /etc/nginx/sites-available/hysteria_panel
 rm -f /etc/nginx/sites-enabled/hysteria_panel
 
-echo "🔄 ၆။ System ကို Refresh လုပ်နေပါသည်..."
+echo "🛑 ၆။ nftables Port Hopping Rule ကို ဖျက်ပစ်နေပါသည်..."
+rm -f /etc/nftables.d/hysteria.nft
+nft list table ip hysteria_nat > /dev/null 2>&1 && nft delete table ip hysteria_nat 2>/dev/null
+
+echo "🔄 ၇။ System ကို Refresh လုပ်နေပါသည်..."
 systemctl daemon-reload
 systemctl restart nginx
 

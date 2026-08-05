@@ -15,8 +15,10 @@ This repository contains everything you need to set up, manage, verify, and unin
 - ⏳ **Expiry Dates** — Set days-based expiry for accounts (0 = unlimited)
 - 🟢 **Real-time Status** — Active / Expired / Data Full status badges
 - 📈 **Traffic Statistics** — Live download/upload usage via Hysteria trafficStats API
-- 🎯 **Port Hopping** — Bulletproof UDP port range (20000-50000) via iptables
-- 🔄 **Auto-Renew** — iptables NAT rule auto-applied on service start (survives reboot)
+- 🎯 **Port Hopping** — Bulletproof UDP port range (20000-50000) via modern **nftables**
+- 🛡️ **Anti-DPI Obfuscation** — Salamander obfs + HTTPS masquerade to hide VPN traffic
+- ⚡ **Performance Tuning** — Optimized QUIC windows for high throughput
+- 🔒 **Security Hardening** — trafficStats secret + IPv4/IPv6 private range blocking
 - 🔒 **SSL/TLS** — Automated Let's Encrypt certificates via certbot
 - 🧹 **1-Click Uninstall** — Clean removal of all components & verification
 
@@ -27,7 +29,7 @@ This repository contains everything you need to set up, manage, verify, and unin
 ```
 Hy2_WebUI_ManusAi/
 ├── README.md                     ← This documentation
-├── install_hysteria.sh           ← 1-Click Setup Script (v3.0)
+├── install_hysteria.sh           ← 1-Click Setup Script (v4.0)
 ├── uninstall_hysteria.sh         ← 1-Click Clean Uninstall Script
 ├── check_hysteria.sh             ← 1-Click Auto Checker Script
 ├── requirements.txt              ← Python dependencies
@@ -139,11 +141,11 @@ bash install_hysteria.sh
 
 The script will automatically:
 
-1. Install required packages
+1. Install required packages (fast, noninteractive)
 2. Set up the Python web panel
 3. Configure Nginx + Let's Encrypt SSL
-4. Install & configure Hysteria 2
-5. Set up bulletproof port hopping (iptables via systemd drop-in)
+4. Install & configure Hysteria 2 (with QUIC tuning, obfs, masquerade)
+5. Set up bulletproof port hopping via modern nftables
 6. Configure UFW firewall
 
 ---
@@ -190,7 +192,7 @@ It checks:
 2. Python panel service status
 3. Nginx web server status
 4. UDP port 10443 listening
-5. Port hopping (20000-50000) iptables NAT rule
+5. Port hopping (20000-50000) nftables NAT rule
 6. Auth API connectivity
 7. Traffic stats API connectivity
 8. SSL certificate presence

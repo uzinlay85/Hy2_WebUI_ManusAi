@@ -14,7 +14,7 @@ It checks:
 2. **Python Web Panel** service status
 3. **Nginx Web Server** service status
 4. **UDP Port 10443** listening status
-5. **Port Hopping (20000-50000)** iptables NAT rule
+5. **Port Hopping (20000-50000)** nftables NAT rule
 6. **Python Auth API** connectivity
 7. **Traffic Stats API** (port 4000) connectivity
 8. **SSL Certificate** presence
@@ -94,16 +94,17 @@ sudo certbot --nginx -d YOUR_DOMAIN
 
 ### 🔴 Port hopping not working
 
-Verify the iptables NAT rule:
+Verify the nftables NAT rule:
 
 ```bash
-sudo iptables -t nat -L PREROUTING
+sudo nft list table ip hysteria_nat
 ```
 
-The rule should show UDP ports 20000:50000 redirecting to 10443. If missing, the systemd drop-in `port-hop.conf` may not be applied. Check:
+The rule should show UDP ports 20000-50000 redirecting to :10443. If missing, reload the rule:
 
 ```bash
-sudo systemctl restart hysteria-server
+sudo nft -f /etc/nftables.d/hysteria.nft
+sudo systemctl enable nftables
 ```
 
 ### 🔴 VPN connects but no traffic flows

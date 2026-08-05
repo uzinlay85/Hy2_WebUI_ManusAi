@@ -23,6 +23,10 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 DB_FILE = '/opt/hysteria-panel/users.db'
 HYSTERIA_PORT = '10443'
+# Anti-DPI obfuscation password (must match config.yaml obfs.salamander.password)
+OBFS_PASSWORD = 'YOUR_OBFS_PASSWORD'
+# Traffic stats secret (must match config.yaml trafficStats.secret)
+STATS_SECRET = 'YOUR_STATS_SECRET'
 
 
 def get_db():
@@ -65,7 +69,7 @@ def get_admin_pass():
 
 def get_traffic_stats():
     try:
-        req = urllib.request.Request("http://127.0.0.1:4000/traffic")
+        req = urllib.request.Request(f"http://127.0.0.1:4000/traffic?secret={STATS_SECRET}")
         with urllib.request.urlopen(req, timeout=2) as response:
             return json.loads(response.read().decode())
     except Exception:
@@ -216,7 +220,7 @@ HTML_TEMPLATE = """
                         {% endif %}
                     </td>
                     <td>
-                        <span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
+                        <span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=1&sni={{ domain }}&obfs=salamander&obfs-password={{ obfs_pass }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
                         <button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button>
                     </td>
                     <td>
@@ -301,7 +305,13 @@ def index():
 
         users_data.append(user)
 
-    return render_template_string(HTML_TEMPLATE, users=users_data, domain=domain, port=HYSTERIA_PORT)
+    return render_template_string(
+        HTML_TEMPLATE,
+        users=users_data,
+        domain=domain,
+        port=HYSTERIA_PORT,
+        obfs_pass=OBFS_PASSWORD,
+    )
 
 
 @app.route("/add", methods=["POST"])

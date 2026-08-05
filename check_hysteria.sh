@@ -41,9 +41,9 @@ else
     echo -e "\e[31m❌ NOT LISTENING\e[0m"
 fi
 
-# 5. Check Port Hopping (iptables NAT)
+# 5. Check Port Hopping (nftables NAT)
 echo -n "၅။ Port Hopping (20000-50000) အလုပ်လုပ်/မလုပ်: "
-if iptables -t nat -L PREROUTING -n -v | grep -q "dpts:20000:50000 redir ports 10443"; then
+if nft list table ip hysteria_nat > /dev/null 2>&1 && nft list table ip hysteria_nat | grep -q "20000-50000"; then
     echo -e "\e[32m✅ ACTIVE (Rule ဝင်နေပါသည်)\e[0m"
 else
     echo -e "\e[31m❌ MISSING (Rule မရှိပါ)\e[0m"

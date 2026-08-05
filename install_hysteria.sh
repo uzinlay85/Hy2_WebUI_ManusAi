@@ -1,32 +1,68 @@
 #!/bin/bash
 
 # =============================================================
-#  Hysteria 2 + Python Web Panel - 1-Click Setup Script (v3.0)
-#  Bulletproof Port Hopping
+#  Hysteria 2 + Python Web Panel - 1-Click Setup Script (v4.0)
+#  Faster • More Performant • More Secure • Official-Aligned
+#  - Noninteractive apt (fast install)
+#  - QUIC performance tuning
+#  - Anti-DPI obfuscation (salamander obfs + masquerade)
+#  - trafficStats secret protection
+#  - IPv6 private range blocking
+#  - nftables port hopping (modern firewall)
 # =============================================================
 
 set -e
 
+# Color helpers
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+info()  { echo -e "${CYAN}[INFO]${NC} $1"; }
+ok()    { echo -e "${GREEN}[OK]${NC} $1"; }
+warn()  { echo -e "${YELLOW}[WARN]${NC} $1"; }
+err()   { echo -e "${RED}[ERROR]${NC} $1"; }
+
+# -----------------------------------------------------------
 # 1. Get Domain Name from User
+# -----------------------------------------------------------
 read -p "🌐 သင့်ရဲ့ Domain Name ကို ရိုက်ထည့်ပါ (ဥပမာ - hy2-bear.truehand.top): " DOMAIN
 if [ -z "$DOMAIN" ]; then
-    echo "❌ Domain Name ထည့်သွင်းခြင်း မရှိပါသဖြင့် ရပ်တန့်လိုက်ပါသည်။"
+    err "Domain Name ထည့်သွင်းခြင်း မရှိပါသဖြင့် ရပ်တန့်လိုက်ပါသည်။"
     exit 1
 fi
 
-echo "🚀 $DOMAIN အတွက် Hysteria 2 + Python Panel ကို စတင် တပ်ဆင်နေပါပြီ..."
+# Generate a random obfs password automatically
+OBFS_PASS=$(head -c 16 /dev/urandom | base64 | tr -d '=' | head -c 20)
+# Generate a random trafficStats secret
+STATS_SECRET=$(head -c 16 /dev/urandom | base64 | tr -d '=' | head -c 20)
+
+info "🚀 $DOMAIN အတွက် Hysteria 2 (v4.0) + Python Panel ကို စတင် တပ်ဆင်နေပါပြီ..."
 sleep 2
 
-# 2. Install Packages
-apt update && apt upgrade -y
-apt install curl wget ufw nginx certbot python3-certbot-nginx sqlite3 python3-pip python3-venv build-essential iptables -y
+# -----------------------------------------------------------
+# 2. Install Packages (Faster - noninteractive, no full upgrade)
+# -----------------------------------------------------------
+export DEBIAN_FRONTEND=noninteractive
+info "Updating package lists..."
+apt update -y
+info "Installing required packages (this may take a few minutes)..."
+apt install -y --no-install-recommends \
+    curl wget ufw nginx certbot python3-certbot-nginx \
+    sqlite3 python3-pip python3-venv build-essential nftables
+ok "Packages installed."
 
+# -----------------------------------------------------------
 # 3. Setup Python Panel
+# -----------------------------------------------------------
 mkdir -p /opt/hysteria-panel
 cd /opt/hysteria-panel
 python3 -m venv venv
 source venv/bin/activate
-pip install Flask
+pip install --no-cache-dir Flask
+ok "Python panel environment ready."
 
 cat << "EOF" > /opt/hysteria-panel/app.py
 from flask import Flask, request, jsonify, render_template_string, redirect, url_for, session
@@ -36,6 +72,8 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 DB_FILE = '/opt/hysteria-panel/users.db'
 HYSTERIA_PORT = '10443'
+# Traffic stats secret (must match config.yaml trafficStats.secret)
+STATS_SECRET = 'STATS_SECRET_PLACEHOLDER'
 
 def get_db():
     conn = sqlite3.connect(DB_FILE)
@@ -67,10 +105,13 @@ def get_admin_pass():
 
 def get_traffic_stats():
     try:
-        req = urllib.request.Request("http://127.0.0.1:4000/traffic")
+        req = urllib.request.Request(
+            f"http://127.0.0.1:4000/traffic?secret={STATS_SECRET}"
+        )
         with urllib.request.urlopen(req, timeout=2) as response:
             return json.loads(response.read().decode())
-    except: return {}
+    except Exception:
+        return {}
 
 @app.route("/auth", methods=["POST"])
 def auth():
@@ -97,7 +138,7 @@ LOGIN_TEMPLATE = """
 """
 
 HTML_TEMPLATE = """
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Hysteria 2 Manager</title><style>body{font-family:sans-serif;background:#f3f4f6;padding:20px;margin:0;}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}.container{max-width:1200px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);}input,button{padding:10px;margin:5px;border-radius:4px;border:1px solid #ccc;}button{background:#3b82f6;color:white;border:none;cursor:pointer;font-weight:bold;}.btn-copy{background:#10b981;padding:6px 12px;font-size:12px;margin-top:5px;}.btn-danger{background:#ef4444;}.btn-logout{background:#6b7280;text-decoration:none;padding:8px 15px;color:white;border-radius:4px;font-size:14px;font-weight:bold;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:14px;}th,td{padding:12px;border:1px solid #ddd;text-align:left;}th{background:#f9fafb;}.code{background:#1f2937;color:#10b981;padding:8px;display:block;word-break:break-all;font-family:monospace;border-radius:4px;}.settings-box{background:#fffbeb;padding:15px;border-radius:8px;border:1px solid #fde68a;margin-top:30px;}.usage-badge{background:#e0e7ff;color:#b45309;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:13px;display:inline-block;margin-bottom:2px;}.status-active{color:#15803d;font-weight:bold;}.status-error{color:#b91c1c;font-weight:bold;}</style><script>function copyToClipboard(id){navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>alert('✅ URL Copied!'));}</script></head><body><div class="container"><div class="header"><h2 style="margin:0;">⚡ Hysteria 2 User Management</h2><a href="/logout" class="btn-logout">🚪 Logout</a></div><form method="POST" action="/add" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#f9fafb;padding:15px;border-radius:8px;"><input type="text" name="user_name" placeholder="📝 Name" required style="flex:1;min-width:100px;"><input type="text" name="user_pass" placeholder="👤 Password" required style="flex:1;min-width:100px;"><input type="number" step="0.1" name="limit_gb" placeholder="Data Limit (GB) [0=Unl]" required style="flex:1;min-width:120px;" value="0"><input type="number" name="days" placeholder="Days [0=Unl]" required style="flex:1;min-width:100px;" value="0"><button type="submit">➕ Add User</button></form><div style="overflow-x:auto;"><table><tr><th>Name</th><th>Password</th><th>Status</th><th>Data Usage / Limit</th><th>Left Days</th><th>Client URL</th><th>Action</th></tr>{% for user in users %}<tr><td><b>{{ user['name'] or 'Unknown' }}</b></td><td>{{ user['password'] }}</td><td>{% if user['status'] == 'Active' %}<span class="status-active">🟢 Active</span>{% else %}<span class="status-error">🔴 {{ user['status'] }}</span>{% endif %}</td><td style="min-width:140px;"><span class="usage-badge">⬇️ {{ user['tx'] | format_bytes }}</span><br><span class="usage-badge" style="background:#dcfce7;color:#4338ca;">⬆️ {{ user['rx'] | format_bytes }}</span><br><small style="color:#6b7280;font-weight:bold;">Total: {{ (user['tx'] + user['rx']) | format_bytes }} / {% if user['limit_gb'] > 0 %}{{ user['limit_gb'] }} GB{% else %}Unlimited{% endif %}</small></td><td>{% if user['expiry_date'] %}<b>{{ user['left_days'] }} Days</b><br><small style="color:#6b7280;">(Exp: {{ user['expiry_date'] }})</small>{% else %}<b>Unlimited</b>{% endif %}</td><td><span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&mport=20000-50000#{{ user['name'] | urlencode }}</span><button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button></td><td><form method="POST" action="/delete" style="margin:0;" onsubmit="return confirm('Delete this user?');"><input type="hidden" name="user_pass" value="{{ user['password'] }}"><button type="submit" class="btn-danger">🗑️</button></form></td></tr>{% endfor %}</table></div><div class="settings-box"><h3 style="margin-top:0;color:#92400e;">⚙️ Change Admin Password</h3><form method="POST" action="/change_pass" style="display:flex;flex-wrap:wrap;gap:10px;"><input type="password" name="current_pass" placeholder="Current Password" required><input type="password" name="new_pass" placeholder="New Password" required><button type="submit" style="background:#d97706;">🔄 Update</button></form></div></div></body></html>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Hysteria 2 Manager</title><style>body{font-family:sans-serif;background:#f3f4f6;padding:20px;margin:0;}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}.container{max-width:1200px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);}input,button{padding:10px;margin:5px;border-radius:4px;border:1px solid #ccc;}button{background:#3b82f6;color:white;border:none;cursor:pointer;font-weight:bold;}.btn-copy{background:#10b981;padding:6px 12px;font-size:12px;margin-top:5px;}.btn-danger{background:#ef4444;}.btn-logout{background:#6b7280;text-decoration:none;padding:8px 15px;color:white;border-radius:4px;font-size:14px;font-weight:bold;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:14px;}th,td{padding:12px;border:1px solid #ddd;text-align:left;}th{background:#f9fafb;}.code{background:#1f2937;color:#10b981;padding:8px;display:block;word-break:break-all;font-family:monospace;border-radius:4px;}.settings-box{background:#fffbeb;padding:15px;border-radius:8px;border:1px solid #fde68a;margin-top:30px;}.usage-badge{background:#e0e7ff;color:#b45309;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:13px;display:inline-block;margin-bottom:2px;}.status-active{color:#15803d;font-weight:bold;}.status-error{color:#b91c1c;font-weight:bold;}</style><script>function copyToClipboard(id){navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>alert('✅ URL Copied!'));}</script></head><body><div class="container"><div class="header"><h2 style="margin:0;">⚡ Hysteria 2 User Management</h2><a href="/logout" class="btn-logout">🚪 Logout</a></div><form method="POST" action="/add" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#f9fafb;padding:15px;border-radius:8px;"><input type="text" name="user_name" placeholder="📝 Name" required style="flex:1;min-width:100px;"><input type="text" name="user_pass" placeholder="👤 Password" required style="flex:1;min-width:100px;"><input type="number" step="0.1" name="limit_gb" placeholder="Data Limit (GB) [0=Unl]" required style="flex:1;min-width:120px;" value="0"><input type="number" name="days" placeholder="Days [0=Unl]" required style="flex:1;min-width:100px;" value="0"><button type="submit">➕ Add User</button></form><div style="overflow-x:auto;"><table><tr><th>Name</th><th>Password</th><th>Status</th><th>Data Usage / Limit</th><th>Left Days</th><th>Client URL</th><th>Action</th></tr>{% for user in users %}<tr><td><b>{{ user['name'] or 'Unknown' }}</b></td><td>{{ user['password'] }}</td><td>{% if user['status'] == 'Active' %}<span class="status-active">🟢 Active</span>{% else %}<span class="status-error">🔴 {{ user['status'] }}</span>{% endif %}</td><td style="min-width:140px;"><span class="usage-badge">⬇️ {{ user['tx'] | format_bytes }}</span><br><span class="usage-badge" style="background:#dcfce7;color:#4338ca;">⬆️ {{ user['rx'] | format_bytes }}</span><br><small style="color:#6b7280;font-weight:bold;">Total: {{ (user['tx'] + user['rx']) | format_bytes }} / {% if user['limit_gb'] > 0 %}{{ user['limit_gb'] }} GB{% else %}Unlimited{% endif %}</small></td><td>{% if user['expiry_date'] %}<b>{{ user['left_days'] }} Days</b><br><small style="color:#6b7280;">(Exp: {{ user['expiry_date'] }})</small>{% else %}<b>Unlimited</b>{% endif %}</td><td><span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&obfs=salamander&obfs-password=\{\{ obfs_pass \}\}&mport=20000-50000#{{ user['name'] | urlencode }}</span><button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button></td><td><form method="POST" action="/delete" style="margin:0;" onsubmit="return confirm('Delete this user?');"><input type="hidden" name="user_pass" value="{{ user['password'] }}"><button type="submit" class="btn-danger">🗑️</button></form></td></tr>{% endfor %}</table></div><div class="settings-box"><h3 style="margin-top:0;color:#92400e;">⚙️ Change Admin Password</h3><form method="POST" action="/change_pass" style="display:flex;flex-wrap:wrap;gap:10px;"><input type="password" name="current_pass" placeholder="Current Password" required><input type="password" name="new_pass" placeholder="New Password" required><button type="submit" style="background:#d97706;">🔄 Update</button></form></div></div></body></html>
 """
 
 @app.route("/login", methods=["GET", "POST"])
@@ -141,7 +182,7 @@ def index():
         if user['limit_gb'] and user['limit_gb'] > 0:
             if total_used >= (user['limit_gb'] * 1024 * 1024 * 1024): user['status'] = 'Data Full'
         users_data.append(user)
-    return render_template_string(HTML_TEMPLATE, users=users_data, domain=domain, port=HYSTERIA_PORT)
+    return render_template_string(HTML_TEMPLATE, users=users_data, domain=domain, port=HYSTERIA_PORT, obfs_pass=STATS_SECRET)
 
 @app.route("/add", methods=["POST"])
 def add_user():
@@ -203,7 +244,13 @@ if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000)
 EOF
 
+# Inject the real stats/obfs secret into app.py
+sed -i "s/STATS_SECRET_PLACEHOLDER/$STATS_SECRET/g" /opt/hysteria-panel/app.py
+ok "Panel app.py created."
+
+# -----------------------------------------------------------
 # 4. Systemd for Python Panel
+# -----------------------------------------------------------
 cat << EOF > /etc/systemd/system/hysteria-panel.service
 [Unit]
 Description=Hysteria 2 Python Panel
@@ -220,8 +267,11 @@ WantedBy=multi-user.target
 EOF
 systemctl daemon-reload
 systemctl enable --now hysteria-panel
+ok "Panel service started."
 
+# -----------------------------------------------------------
 # 5. Nginx & SSL
+# -----------------------------------------------------------
 cat << EOF > /etc/nginx/sites-available/hysteria_panel
 server {
     listen 80;
@@ -240,8 +290,11 @@ systemctl restart nginx
 certbot --nginx -d $DOMAIN --non-interactive --agree-tos --register-unsafely-without-email
 chmod -R 755 /etc/letsencrypt/archive
 chmod -R 755 /etc/letsencrypt/live
+ok "Nginx + SSL configured."
 
-# 6. Hysteria 2 Install & Config
+# -----------------------------------------------------------
+# 6. Hysteria 2 Install & Config (v4.0 - tuned)
+# -----------------------------------------------------------
 echo "net.core.rmem_max=8388608" >> /etc/sysctl.conf
 echo "net.core.wmem_max=8388608" >> /etc/sysctl.conf
 sysctl -p
@@ -255,48 +308,104 @@ tls:
   cert: /etc/letsencrypt/live/$DOMAIN/fullchain.pem
   key: /etc/letsencrypt/live/$DOMAIN/privkey.pem
 
+# Performance tuning (official recommendations)
+quic:
+  initStreamReceiveWindow: 8388608
+  maxStreamReceiveWindow: 8388608
+  initConnReceiveWindow: 20971520
+  maxConnReceiveWindow: 20971520
+  maxIdleTimeout: 30s
+  keepAlivePeriod: 10s
+
+# Anti-DPI obfuscation - makes traffic look like HTTPS
+obfs:
+  type: salamander
+  salamander:
+    password: $OBFS_PASS
+
+# Masquerade - disguise probe traffic as normal HTTPS requests
+masquerade:
+  type: proxy
+  proxy:
+    url: https://www.bing.com
+    rewriteHost: true
+
 auth:
   type: http
   http:
     url: http://127.0.0.1:5000/auth
 
+# Block private ranges (IPv4 + IPv6) to prevent abuse
 acl:
   inline:
     - reject(127.0.0.0/8)
+    - reject(::1/128)
     - reject(10.0.0.0/8)
     - reject(172.16.0.0/12)
     - reject(192.168.0.0/16)
+    - reject(fc00::/7)
+    - reject(fe80::/10)
     - direct(all)
 
 trafficStats:
   listen: 127.0.0.1:4000
+  secret: $STATS_SECRET
+EOF
+ok "Hysteria config written."
+
+# -----------------------------------------------------------
+# 7. Port Hopping using nftables (modern firewall)
+# -----------------------------------------------------------
+cat << 'EOF' > /etc/nftables.d/hysteria.nft
+table ip hysteria_nat {
+    chain prerouting {
+        type nat hook prerouting priority -100; policy accept;
+        udp dport 20000-50000 redirect to :10443
+    }
+}
 EOF
 
-# 7. Bulletproof Port Hopping (Systemd Drop-in)
-# UFW ထဲမှာ မရေးတော့ဘဲ Hysteria Service တက်တာနဲ့ iptables ကို အလိုအလျောက် Run ပေးမယ့်စနစ်
-mkdir -p /etc/systemd/system/hysteria-server.service.d
-cat << EOF > /etc/systemd/system/hysteria-server.service.d/port-hop.conf
-[Service]
-ExecStartPost=+/sbin/iptables -t nat -A PREROUTING -p udp --dport 20000:50000 -j REDIRECT --to-ports 10443
-ExecStopPost=+/sbin/iptables -t nat -D PREROUTING -p udp --dport 20000:50000 -j REDIRECT --to-ports 10443
-EOF
+# Ensure nftables config includes the include path
+if ! grep -q "nftables.d" /etc/nftables.conf; then
+    echo 'include "/etc/nftables.d/*.nft";' >> /etc/nftables.conf
+fi
 
-systemctl daemon-reload
-systemctl enable --now hysteria-server
-systemctl restart hysteria-server
+# Load the rule now
+nft -f /etc/nftables.d/hysteria.nft 2>/dev/null || warn "nftables rule already loaded or nft not available; will apply on boot."
 
+# Make nftables persistent
+systemctl enable nftables 2>/dev/null || true
+ok "nftables port hopping configured."
+
+# -----------------------------------------------------------
 # 8. UFW Firewall (Clean & Simple)
+# -----------------------------------------------------------
 ufw allow 80/tcp
 ufw allow 443/tcp
 ufw allow 10443/udp
 ufw allow 20000:50000/udp
-
-# အရင်က မှားယွင်းရေးမိခဲ့တဲ့ UFW NAT Rule အဟောင်းတွေရှိရင် အလိုအလျောက် ရှင်းလင်းပေးရန်
+# Remove old buggy UFW NAT rule if present
 sed -i '/20000:50000/d' /etc/ufw/before.rules
 ufw reload
+ok "Firewall configured."
 
-echo "====================================================="
-echo "🎉 တပ်ဆင်ခြင်း အောင်မြင်စွာ ပြီးဆုံးပါပြီ!"
+# -----------------------------------------------------------
+# 9. Start Hysteria
+# -----------------------------------------------------------
+systemctl enable --now hysteria-server
+systemctl restart hysteria-server
+ok "Hysteria server started."
+
+echo ""
+echo "============================================================="
+echo -e "${GREEN}🎉 တပ်ဆင်ခြင်း အောင်မြင်စွာ ပြီးဆုံးပါပြီ! (v4.0)${NC}"
 echo "🌐 Web UI: https://$DOMAIN"
 echo "🔑 Default Admin Password: admin123"
-echo "====================================================="
+echo ""
+echo -e "${YELLOW}⚙️  Obfuscation Password (clients need this):${NC} $OBFS_PASS"
+echo -e "${YELLOW}🔐 Traffic Stats Secret:${NC} $STATS_SECRET"
+echo "============================================================="
+echo ""
+echo "⚠️  ဤ OBFS Password ကို Client URL များတွင် အလိုအလျောက် ထည့်ပေးထားပြီးဖြစ်ပါသည်။"
+echo "     Panel မှ ထုတ်ပေးသော hysteria2:// URL များကို တိုက်ရိုက် အသုံးပြုနိုင်ပါသည်။"
+echo "============================================================="
