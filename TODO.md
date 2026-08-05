@@ -16,12 +16,10 @@
 - [x] Create docs/troubleshooting.md (troubleshooting steps)
 
 ## Step 2: Initialize Git Repo
-
-- [ ] git init
-- [ ] Configure local user
+- [x] git init
+- [x] Configure local user
 
 ## Step 3: Add Remote & Push
-
-- [ ] Add remote origin
-- [ ] Stage & commit files
-- [ ] Push to GitHub
+- [x] Add remote origin
+- [x] Stage & commit files
+- [x] Push to GitHub
