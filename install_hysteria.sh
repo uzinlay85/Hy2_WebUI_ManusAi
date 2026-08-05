@@ -341,7 +341,9 @@ server {
 EOF
 rm -f /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/hysteria_panel /etc/nginx/sites-enabled/
-systemctl restart nginx
+# Clean up any stuck certbot locks or background instances
+pkill -9 -f certbot 2>/dev/null || true
+rm -f /var/lib/letsencrypt/*.lock /var/log/letsencrypt/*.lock /run/lock/certbot.lock 2>/dev/null || true
 
 certbot --nginx -d $DOMAIN --non-interactive --agree-tos --register-unsafely-without-email
 chmod -R 755 /etc/letsencrypt/archive
