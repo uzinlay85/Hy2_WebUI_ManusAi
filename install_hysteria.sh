@@ -340,7 +340,8 @@ server {
 }
 EOF
 rm -f /etc/nginx/sites-enabled/default
-ln -s /etc/nginx/sites-available/hysteria_panel /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/hysteria_panel
+ln -sf /etc/nginx/sites-available/hysteria_panel /etc/nginx/sites-enabled/
 # Clean up any stuck certbot locks or background instances
 pkill -9 -f certbot 2>/dev/null || true
 rm -f /var/lib/letsencrypt/*.lock /var/log/letsencrypt/*.lock /run/lock/certbot.lock 2>/dev/null || true
