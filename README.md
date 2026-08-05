@@ -1,228 +1,177 @@
 # 🚀 Hysteria 2 + Python Web Management Panel
 
-A complete, production-ready deployment toolkit for running **Hysteria 2 VPN** with a **Flask-based Web Management Panel** on any Linux VPS.
+Linux VPS များတွင် **Hysteria 2 VPN** နှင့် **Python (Flask) Web Management Panel** ကို လွယ်ကူလျင်မြန်စွာ တပ်ဆင်၊ စီမံ၊ စစ်ဆေး၊ ပြန်လည်ဖျက်ဆီးနိုင်သော 1-Click Automation Toolkit ဖြစ်ပါသည်။
 
-This repository contains everything you need to set up, manage, verify, and uninstall a Hysteria 2 server with a user-friendly web UI for managing VPN users, traffic limits, and expiry dates.
-
----
-
-## ✨ Features
-
-- 🔐 **Hysteria 2** — High-performance, QUIC-based VPN protocol
-- 🖥️ **Web Management Panel** — Python (Flask) based user management UI
-- 👥 **User Management** — Add / delete VPN users with custom passwords
-- 📊 **Data Limits** — Set GB data caps per user (0 = unlimited)
-- ⏳ **Expiry Dates** — Set days-based expiry for accounts (0 = unlimited)
-- 🟢 **Real-time Status** — Active / Expired / Data Full status badges
-- 📈 **Traffic Statistics** — Live download/upload usage via Hysteria trafficStats API
-- 🎯 **Port Hopping** — Bulletproof UDP port range (20000-50000) via modern **nftables**
-- 🛡️ **Anti-DPI Obfuscation** — Salamander obfs + HTTPS masquerade to hide VPN traffic
-- ⚡ **Performance Tuning** — Optimized QUIC windows for high throughput
-- 🔒 **Security Hardening** — trafficStats secret + IPv4/IPv6 private range blocking
-- 🔒 **SSL/TLS** — Automated Let's Encrypt certificates via certbot
-- 🧹 **1-Click Uninstall** — Clean removal of all components & verification
+ဤ Repository တွင် VPN အသုံးပြုသူများ (Users) ကို စီမံရန်၊ Data Limit (GB) သတ်မှတ်ရန်၊ သက်တမ်း (Days) သတ်မှတ်ရန်နှင့် Real-time Traffic Statistics ကို ကြည့်ရှုနိုင်ရန် လိုအပ်သော Script များနှင့် Documentation အပြည့်အစုံ ပါဝင်ပါသည်။
 
 ---
 
-## 📁 Repository Structure
+## ✨ ပါဝင်သော စနစ်များနှင့် အင်္ဂါရပ်များ (Features)
 
-```
-Hy2_WebUI_ManusAi/
-├── README.md                     ← This documentation
-├── install_hysteria.sh           ← 1-Click Setup Script (v4.0)
-├── uninstall_hysteria.sh         ← 1-Click Clean Uninstall Script
-├── check_hysteria.sh             ← 1-Click Auto Checker Script
-├── requirements.txt              ← Python dependencies
-├── .gitignore                    ← Git ignore rules
-├── panel/
-│   └── app.py                    ← Flask Web Panel backend
-├── config/
-│   ├── config.yaml               ← Hysteria 2 server config
-│   ├── hysteria-panel.service    ← Systemd service for the panel
-│   └── nginx_hysteria_panel      ← Nginx reverse-proxy config
-└── docs/
-    ├── setup-guide-v2.md         ← Detailed manual setup guide (v2.0)
-    └── troubleshooting.md        ← Troubleshooting & verification guide
-```
+- 🔐 **Hysteria 2** — မြန်ဆန်စိတ်ချရသော QUIC-based VPN Protocol
+- 🖥️ **Web Management Panel** — Python (Flask) ဖြင့် ရေးသားထားသော User Management Web UI
+- 👥 **User Management** — User အသစ်ထည့်ခြင်း / ဖျက်ခြင်း
+- 📊 **Data Limits** — User တစ်ဦးချင်းစီအတွက် Data Limit (GB) သတ်မှတ်နိုင်ခြင်း (`0` = အကန့်အသတ်မရှိ)
+- ⏳ **Expiry Dates** — User တစ်ဦးချင်းစီအတွက် သက်တမ်းရက် (Days) သတ်မှတ်နိုင်ခြင်း (`0` = အကန့်အသတ်မရှိ)
+- 🟢 **Real-time Status Badges** — Active / Expired / Data Full အခြေအနေများကို တိုက်ရိုက်ပြသပေးခြင်း
+- 📈 **Traffic Statistics** — Hysteria trafficStats API မှတစ်ဆင့် Real-time Data သုံးစွဲမှုကို ပြသပေးခြင်း
+- 🎯 **Port Hopping** — **nftables** ဖြင့် စိတ်ချရသော UDP Port Hopping (20000-50000) စနစ်
+- 🛡️ **Anti-DPI Obfuscation** — Salamander obfs + HTTPS masquerade (Bing) ဖြင့် VPN Traffic ကို ဖုံးကွယ်ခြင်း
+- ⚡ **Performance Tuning** — QUIC performance တိုးမြှင့်ရန် UDP Buffer ကို Tuning ပြုလုပ်ထားခြင်း
+- 🔒 **Security Hardening** — trafficStats secret Auth + IPv4/IPv6 private IP range များကို ပိတ်ပင်ထားခြင်း
+- 🔒 **SSL/TLS** — Certbot မှတစ်ဆင့် Let's Encrypt SSL Certificate ကို အလိုအလျောက် ရယူပေးခြင်း
+- 🧹 **1-Click Uninstall** — Component များအားလုံးကို ရှင်းလင်းစွာ ဖျက်ဆီးပေးခြင်း
 
 ---
 
-## 📥 Download the Scripts to Your VPS
+## ⚡ ၁ ချက်နှိပ် Command များ (Quick Commands)
 
-> **Important:** The scripts are hosted on GitHub, **not** on your server. You must download them onto your VPS first before running them. The error `bash: check_hysteria.sh: No such file or directory` means the file isn't on your server yet.
+VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင်းကို Copy ကူးပြီး Paste ချကာ run နိုင်ပါသည်။
 
-### Option A — Clone the whole repository (recommended, gets all files)
-
-```bash
-cd /home/zinko/testgit
-git clone https://github.com/uzinlay85/Hy2_WebUI_ManusAi.git .
-```
-
-### Option B — Download just one script at a time
-
-```bash
-# In the directory where you want the scripts (e.g. /home/zinko/testgit)
-cd /home/zinko/testgit
-
-# Download the checker script
-wget -O check_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh
-
-# Download the setup script
-wget -O install_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh
-
-# Download the uninstall script
-wget -O uninstall_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh
-```
-
-### Option C — Download a single file from GitHub web UI
-
-1. Open `https://github.com/uzinlay85/Hy2_WebUI_ManusAi`
-2. Click the file you want (e.g. `check_hysteria.sh`)
-3. Click the **Raw** button
-4. Right-click → **Save As** to save it on your computer
-5. Upload it to your VPS with `scp`:
-   ```bash
-   scp check_hysteria.sh root@YOUR_SERVER_IP:/home/zinko/testgit/
-   ```
-
-### Verify the file is there, then run it
-
-```bash
-ls -la check_hysteria.sh        # confirm the file exists
-chmod +x check_hysteria.sh      # make it executable
-bash check_hysteria.sh          # run it
-```
+| လုပ်ဆောင်ချက် | 1-Line Command |
+| :--- | :--- |
+| **🚀 Install** (တပ်ဆင်ရန်) | `wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh` |
+| **🔍 Check** (စစ်ဆေးရန်) | `wget --no-cache -O check.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh?$(date +%s)" && bash check.sh` |
+| **🧹 Uninstall** (ဖျက်ရန်) | `wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh && bash uninstall.sh` |
 
 ---
 
-## 🚀 Quick Start (1-Click Setup)
+## 🚀 စတင်တပ်ဆင်နည်း (Installation)
 
-### ⚡ 1-Line Installation (Fastest Way)
+### လိုအပ်ချက်များ (Prerequisites)
+1. Linux VPS (Ubuntu 20.04 / 22.04 / 24.04 သို့မဟုတ် Debian 11 / 12)
+2. သင့် VPS IP သို့ ချိတ်ဆက်ထားသော Domain Name (DNS A Record point လုပ်ထားရမည်)
+3. Root access (သို့မဟုတ် Sudo privileges)
 
-Just copy, paste, and press **Enter** on your fresh VPS — no need to download files manually. It will ask you for your domain name, then do everything automatically.
-
+### တပ်ဆင်ပုံ အဆင့်ဆင့်
+၁။ Terminal တွင် အောက်ပါ command ကို Run ပါ -
 ```bash
 wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh
 ```
-
-Or use `curl` if `wget` isn't available:
-
-```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh)
-```
-
-### ⚡ 1-Line Commands for All Scripts
-
-| Task                  | One-Line Command                                                                                                                     |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| **Install** (setup)   | `wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh`       |
-| **Check** (diagnose)  | `wget -O check.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh && bash check.sh`             |
-| **Uninstall** (clean) | `wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh && bash uninstall.sh` |
-
-### Prerequisites
-
-- A Linux VPS (Ubuntu/Debian recommended)
-- A domain name pointed to your VPS IP (DNS A record)
-- Root / sudo access
-
-### Manual download (alternative)
-
-```bash
-# First, download the script to your VPS (see "Download the Scripts to Your VPS" above)
-cd /home/zinko/testgit
-wget -O install_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh
-
-# Make it executable
-chmod +x install_hysteria.sh
-
-# Run setup (it will ask for your domain name)
-bash install_hysteria.sh
-```
-
-The script will automatically:
-
-1. Install required packages (fast, noninteractive)
-2. Set up the Python web panel
-3. Configure Nginx + Let's Encrypt SSL
-4. Install & configure Hysteria 2 (with QUIC tuning, obfs, masquerade)
-5. Set up bulletproof port hopping via modern nftables
-6. Configure UFW firewall
+၂။ မေးခွန်းတွင် သင့် Domain Name (ဥပမာ - `hy2.yourdomain.com`) ကို ရိုက်ထည့်ပါ။  
+၃။ တပ်ဆင်ခြင်း ပြီးစီးပါက **Web UI Link**၊ **Admin Password** နှင့် **OBFS Password** များကို ပြသပေးပါလိမ့်မည်။
 
 ---
 
-## 🖥️ Web Panel Usage
+## 🖥️ Web Panel အသုံးပြုနည်း
 
-After setup, open `https://your-domain.com` in your browser.
+တပ်ဆင်ပြီးပါက Browser တွင် `https://yourdomain.com` သို့ ဝင်ရောက်ပါ။
 
 - **Default Admin Password:** `admin123`
-- **Change it immediately** after first login via the settings box.
+- **စတင် ဝင်ရောက်ပြီးသည်နှင့် Settings box မှတစ်ဆင့် Admin Password ကို ချက်ချင်း ပြောင်းလဲပါ။**
 
-### Adding a User
-
-1. Enter a **Name** (e.g. "John Doe")
-2. Enter a **Password** (shared with the client)
-3. Set a **Data Limit (GB)** — `0` = unlimited
-4. Set **Days** — `0` = unlimited
-5. Click **➕ Add User**
-6. Copy the generated **Client URL** and share it with the user
-
-### Client Connection URL
-
-Each user gets a `hysteria2://...` URL that works with Hysteria clients (e.g. Hiddify, v2rayN, sing-box).
+### User အသစ်ထည့်ခြင်း
+1. **📝 Name**: User နာမည် ရိုက်ထည့်ပါ
+2. **👤 Password**: Password ရိုက်ထည့်ပါ (သို့မဟုတ် အလိုအလျောက် ထွက်လာသော Password သုံးပါ)
+3. **Data Limit (GB)**: အသုံးပြုနိုင်မည့် Data အကန့်အသတ် (GB) (`0` ဆိုပါက အကန့်အသတ်မရှိ)
+4. **Days**: အသုံးပြုနိုင်မည့် ရက်ပေါင်း (`0` ဆိုပါက အကန့်အသတ်မရှိ)
+5. **➕ Add User** ကို နှိပ်ပါ
+6. ထွက်လာသော **Client URL** ကို `📋 Copy URL` နှိပ်၍ Client App (Hiddify, v2rayN, sing-box) များတွင် ထည့်သွင်းသုံးစွဲပါ။
 
 ---
 
-## 🔍 Verify Installation
+## 🧐 ဖိုင်များကို `cat` ဖြင့် စစ်ဆေးခြင်း (Config File Inspection)
 
-Run the auto-checker to diagnose any issues:
+စနစ် အလုပ်လုပ်ပုံ သို့မဟုတ် Configuration များကို တိုက်ရိုက် စစ်ဆေးလိုပါက VPS Terminal တွင် အောက်ပါ `cat` command များကို သုံး၍ စစ်ဆေးနိုင်ပါသည်-
+
+### ၁။ Hysteria 2 Server Config ကို စစ်ဆေးရန်
+```bash
+cat /etc/hysteria/config.yaml
+```
+> **စစ်ဆေးရမည့် အချက်များ:**
+> - `listen`: Port `10443` ဖြင့် ငြိမ်နေသလား။
+> - `tls`: SSL Certificate (`fullchain.pem` နှင့် `privkey.pem`) လမ်းကြောင်း မှန်သလား။
+> - `obfs.salamander.password`: Obfuscation Password ရှိသလား။
+> - `auth.http.url`: `http://127.0.0.1:5000/auth` သို့ ညွှန်ထားသလား။
+> - `trafficStats.secret`: Secret key ပါဝင်ပြီး `listen: 127.0.0.1:4000` ဖြစ်နေသလား။
+
+### ၂။ Python Web Panel App Code ကို စစ်ဆေးရန်
+```bash
+cat /opt/hysteria-panel/app.py
+```
+> **စစ်ဆေးရမည့် အချက်များ:**
+> - `STATS_SECRET` နှင့် `OBFS_PASS` နေရာတွင် သက်ဆိုင်ရာ Secret များ မှန်ကန်စွာ အစားထိုးဝင်ရောက်ထားသလား။
+> - `get_traffic_stats()` ထဲတွင် `headers={"Authorization": STATS_SECRET}` ဖြင့် Request ပို့ထားသလား။
+> - Client URL ထုတ်ပေးသော နေရာတွင် `insecure=0` ဖြစ်နေသလား။
+
+### ၃။ Python Panel Systemd Service ကို စစ်ဆေးရန်
+```bash
+cat /etc/systemd/system/hysteria-panel.service
+```
+> **စစ်ဆေးရမည့် အချက်များ:**
+> - `ExecStart` သည် `/opt/hysteria-panel/venv/bin/python /opt/hysteria-panel/app.py` ဖြစ်နေသလား။
+> - `Restart=always` ပါဝင်သလား။
+
+### ၄။ Nginx Reverse Proxy Config ကို စစ်ဆေးရန်
+```bash
+cat /etc/nginx/sites-available/hysteria_panel
+```
+> **စစ်ဆေးရမည့် အချက်များ:**
+> - `server_name` တွင် သင့် Domain Name ကို တွေ့ရသလား။
+> - `proxy_pass http://127.0.0.1:5000;` သို့ လမ်းကြောင်းညွှန်ထားသလား။
+
+### ၅။ Port Hopping nftables Firewall Rule ကို စစ်ဆေးရန်
+```bash
+cat /etc/nftables.d/hysteria.nft
+```
+> **စစ်ဆေးရမည့် အချက်များ:**
+> - `udp dport 20000-50000 redirect to :10443` စာကြောင်း ပါဝင်နေသလား။
+
+---
+
+## 🔍 စနစ်တစ်ခုလုံးကို အလိုအလျောက် စစ်ဆေးခြင်း (Auto Checker)
+
+ပြဿနာတစ်စုံတစ်ရာ ရှိမရှိ အောက်ပါ Command ဖြင့် ၁ ချက်တည်း အလိုအလျောက် စစ်ဆေးနိုင်ပါသည်။
 
 ```bash
-bash check_hysteria.sh
+wget --no-cache -O check.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh?$(date +%s)" && bash check.sh
 ```
 
-Or use the 1-line command:
+**စစ်ဆေးပေးမည့် အချက် (၈) ချက်:**
+1. ✅ Hysteria Server Service (Running status)
+2. ✅ Python Web Panel Service (Running status)
+3. ✅ Nginx Web Server (Running status)
+4. ✅ Port 10443 (UDP Listened status)
+5. ✅ Port Hopping 20000-50000 (nftables NAT rule status)
+6. ✅ Python Auth API (`/auth` endpoint status)
+7. ✅ Traffic Stats API (HTTP 200 with Authorization header status)
+8. ✅ Let's Encrypt SSL Certificates (Found status)
+9. 📜 Hysteria Server Log နောက်ဆုံး ၁၀ ကြောင်း
+
+---
+
+## 🧹 ဖျက်ဆီးခြင်း (Uninstall)
+
+ဆာဗာမှ Hysteria 2 နှင့် Python Panel အပါအဝင် ဖိုင်များ၊ Service များ၊ Config များကို လုံးဝ သန့်ရှင်းစွာ ဖျက်ပစ်လိုပါက အောက်ပါ Command ကို ရိုက်ပါ-
 
 ```bash
-wget -O check.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh && bash check.sh
-```
-
-It checks:
-
-1. Hysteria server service status
-2. Python panel service status
-3. Nginx web server status
-4. UDP port 10443 listening
-5. Port hopping (20000-50000) nftables NAT rule
-6. Auth API connectivity
-7. Traffic stats API connectivity
-8. SSL certificate presence
-
-Plus the last 10 lines of Hysteria server logs.
-
----
-
-## 🧹 Uninstall
-
-To completely remove Hysteria 2 + the panel from your server:
-
-```bash
-bash uninstall_hysteria.sh
+wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh && bash uninstall.sh
 ```
 
 ---
 
-## 🛠️ Manual Setup
+## 📁 Repository ဖိုင်ဖွဲ့စည်းပုံ (Structure)
 
-Prefer step-by-step control? Follow the detailed guide in [`docs/setup-guide-v2.md`](docs/setup-guide-v2.md).
+```
+Hy2_WebUI_ManusAi/
+├── README.md                     ← ဤ Documentation ဖိုင်
+├── install_hysteria.sh           ← 1-Click Auto Setup Script (v4.0)
+├── uninstall_hysteria.sh         ← 1-Click Clean Uninstall Script
+├── check_hysteria.sh             ← 1-Click Auto Checker Script (v2.2)
+├── requirements.txt              ← Python dependencies
+├── panel/
+│   └── app.py                    ← Flask Web Panel backend code
+├── config/
+│   ├── config.yaml               ← Hysteria 2 server configuration
+│   ├── hysteria-panel.service    ← Systemd service configuration
+│   └── nginx_hysteria_panel      ← Nginx reverse proxy configuration
+└── docs/
+    ├── setup-guide-v2.md         ← အသေးစိတ် လက်ဖြင့် ပြင်ဆင်နည်း Guide
+    └── troubleshooting.md        ← ပြဿနာဖြေရှင်းနည်းများ Guide
+```
 
 ---
 
-## 📄 License
+## 🤝 ကူညီထောက်ပံ့မှု (Support)
 
-This project is provided for educational and personal use. Use responsibly and in accordance with your local laws.
-
----
-
-## 🤝 Support
-
-If you encounter issues, run the checker script and review `docs/troubleshooting.md` for common fixes.
+ပြဿနာ တစ်စုံတစ်ရာ ရှိပါက Auto Checker Script ကို ရိုက်နှိပ်၍ ထွက်လာသော ရလဒ်များဖြင့် စစ်ဆေးနိုင်ပါသည်။
