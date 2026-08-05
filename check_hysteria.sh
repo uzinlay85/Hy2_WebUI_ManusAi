@@ -2,18 +2,29 @@
 
 # =============================================================
 #  Hysteria 2 + Python Web Panel - 1-Click Auto Checker Script
-#  Version 2.1 - Comprehensive 8-point system check
-#  Fix: Traffic Stats API now reads secret from app.py for auth
+#  Version 2.2 - Robust secret extraction + HTTP status check
 # =============================================================
 
 echo "====================================================="
-echo "🔍 Hysteria 2 အလိုအလျောက် စစ်ဆေးရေးစနစ် (v2.1)"
+echo "🔍 Hysteria 2 အလိုအလျောက် စစ်ဆေးရေးစနစ် (v2.2)"
 echo "====================================================="
 
-# Read the STATS_SECRET from the installed app.py (if available)
+# ---------------------------------------------------------------------------
+# Extract STATS_SECRET robustly using awk (more reliable than sed)
+# Try app.py first, then fall back to config.yaml
+# ---------------------------------------------------------------------------
 STATS_SECRET=""
-if [ -f /opt/hysteria-panel/app.py ]; then
-    STATS_SECRET=$(grep "^STATS_SECRET" /opt/hysteria-panel/app.py | head -1 | sed "s/STATS_SECRET = '//;s/'//")
+APP_PY="/opt/hysteria-panel/app.py"
+CONFIG_YAML="/etc/hysteria/config.yaml"
+
+if [ -f "$APP_PY" ]; then
+    # awk: use single-quote as field delimiter, grab field 2 from matching line
+    STATS_SECRET=$(grep "^STATS_SECRET" "$APP_PY" | head -1 | awk -F"'" '{print $2}')
+fi
+
+# Fallback: read from hysteria config.yaml if app.py extraction failed
+if [ -z "$STATS_SECRET" ] && [ -f "$CONFIG_YAML" ]; then
+    STATS_SECRET=$(grep "secret:" "$CONFIG_YAML" | tail -1 | awk '{print $2}')
 fi
 
 # 1. Check Hysteria Service
@@ -65,17 +76,19 @@ else
     echo -e "\e[31m❌ FAILED\e[0m"
 fi
 
-# 7. Check Traffic Stats API (with secret)
+# 7. Check Traffic Stats API — check HTTP 200 status code instead of body content
 echo -n "၇။ Data Usage (Traffic Stats) API: "
 if [ -n "$STATS_SECRET" ]; then
-    STATS_URL="http://127.0.0.1:4000/traffic?secret=${STATS_SECRET}"
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 \
+        "http://127.0.0.1:4000/traffic?secret=${STATS_SECRET}")
+    if [ "$HTTP_CODE" = "200" ]; then
+        echo -e "\e[32m✅ RESPONDING (HTTP 200)\e[0m"
+    else
+        echo -e "\e[31m❌ FAILED (HTTP $HTTP_CODE — secret မမှန်ကန်နိုင်ပါ)\e[0m"
+        echo "   ↳ Secret used: ${STATS_SECRET:0:6}... (first 6 chars)"
+    fi
 else
-    STATS_URL="http://127.0.0.1:4000/traffic"
-fi
-if curl -s --max-time 2 "$STATS_URL" | grep -q "{"; then
-    echo -e "\e[32m✅ RESPONDING\e[0m"
-else
-    echo -e "\e[31m❌ FAILED (secret မပါပါက /opt/hysteria-panel/app.py စစ်ဆေးပါ)\e[0m"
+    echo -e "\e[31m❌ FAILED (secret ကို /opt/hysteria-panel/app.py မှ ဖတ်မရပါ)\e[0m"
 fi
 
 # 8. Check SSL Certificates
