@@ -31,6 +31,7 @@ VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင
 | လုပ်ဆောင်ချက် | 1-Line Command |
 | :--- | :--- |
 | **🚀 Install** (တပ်ဆင်ရန်) | `wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh` |
+| **🔄 Update** (Domain ရိုက်စရာမလို အလိုအလျောက် အဆင့်မြှင့်ရန်) | `wget -O update.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/update_hysteria.sh && bash update.sh` |
 | **🔍 Check** (စစ်ဆေးရန်) | `wget --no-cache -O check.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh?$(date +%s)" && bash check.sh` |
 | **🧹 Uninstall** (ဖျက်ရန်) | `wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh && bash uninstall.sh` |
 
