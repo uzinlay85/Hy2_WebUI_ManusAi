@@ -18,11 +18,12 @@ quic:
   maxIdleTimeout: 30s
   keepAlivePeriod: 10s
 
-# Anti-DPI obfuscation - makes traffic look like HTTPS
-obfs:
-  type: salamander
-  salamander:
-    password: YOUR_OBFS_PASSWORD
+# Obfuscation (disabled by default for maximum app compatibility & light connections)
+# To re-enable Salamander obfs, see docs/obfs-salamander-guide.md
+# obfs:
+#   type: salamander
+#   salamander:
+#     password: YOUR_OBFS_PASSWORD
 
 # Masquerade - disguise probe traffic as normal HTTPS requests
 masquerade:
