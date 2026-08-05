@@ -1,0 +1,14 @@
+# Nginx reverse proxy config for Hysteria 2 Python Panel
+# Place at: /etc/nginx/sites-available/hysteria_panel
+# Then symlink to sites-enabled and run certbot.
+# Replace YOUR_DOMAIN with your actual domain name.
+
+server {
+    listen 80;
+    server_name YOUR_DOMAIN;
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}

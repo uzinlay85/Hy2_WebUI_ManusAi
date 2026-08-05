@@ -1,0 +1,25 @@
+# Hysteria 2 Server Configuration
+# Place this file at: /etc/hysteria/config.yaml
+# Replace YOUR_DOMAIN with your actual domain name.
+
+listen: :10443
+
+tls:
+  cert: /etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem
+  key: /etc/letsencrypt/live/YOUR_DOMAIN/privkey.pem
+
+auth:
+  type: http
+  http:
+    url: http://127.0.0.1:5000/auth
+
+acl:
+  inline:
+    - reject(127.0.0.0/8)
+    - reject(10.0.0.0/8)
+    - reject(172.16.0.0/12)
+    - reject(192.168.0.0/16)
+    - direct(all)
+
+trafficStats:
+  listen: 127.0.0.1:4000

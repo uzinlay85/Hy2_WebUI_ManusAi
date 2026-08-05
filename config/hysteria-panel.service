@@ -1,0 +1,12 @@
+[Unit]
+Description=Hysteria 2 Python Panel
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/hysteria-panel
+ExecStart=/opt/hysteria-panel/venv/bin/python /opt/hysteria-panel/app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
