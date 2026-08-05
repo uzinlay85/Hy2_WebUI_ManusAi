@@ -475,7 +475,7 @@ def last_seen_filter(s):
 def urlencode_pass_filter(s):
     if not s:
         return ""
-    return urllib.parse.quote(s, safe='')
+    return urllib.parse.quote(str(s), safe='')
 
 
 if __name__ == "__main__":

@@ -294,6 +294,11 @@ def format_bytes(size):
 def last_seen_filter(s):
     return format_last_seen(s)
 
+@app.template_filter('urlencode_pass')
+def urlencode_pass_filter(s):
+    if not s: return ""
+    return urllib.parse.quote(str(s), safe='')
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000)
 EOF
