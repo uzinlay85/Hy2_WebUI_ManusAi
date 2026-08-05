@@ -35,9 +35,10 @@ if [ -z "$DOMAIN" ]; then
 fi
 
 # Generate a random obfs password automatically
-OBFS_PASS=$(head -c 16 /dev/urandom | base64 | tr -d '=' | head -c 20)
+# NOTE: tr -d '+/=' removes all base64 special chars to keep sed-safe alphanumeric only
+OBFS_PASS=$(head -c 32 /dev/urandom | base64 | tr -d '+/=' | head -c 20)
 # Generate a random trafficStats secret
-STATS_SECRET=$(head -c 16 /dev/urandom | base64 | tr -d '=' | head -c 20)
+STATS_SECRET=$(head -c 32 /dev/urandom | base64 | tr -d '+/=' | head -c 20)
 
 info "🚀 $DOMAIN အတွက် Hysteria 2 (v4.0) + Python Panel ကို စတင် တပ်ဆင်နေပါပြီ..."
 sleep 2
@@ -249,8 +250,9 @@ if __name__ == "__main__":
 EOF
 
 # Inject the real stats/obfs values into app.py
-sed -i "s/STATS_SECRET_PLACEHOLDER/$STATS_SECRET/g" /opt/hysteria-panel/app.py
-sed -i "s/OBFS_PASS_PLACEHOLDER/$OBFS_PASS/g" /opt/hysteria-panel/app.py
+# NOTE: Using | as delimiter instead of / to avoid breakage if value contains /
+sed -i "s|STATS_SECRET_PLACEHOLDER|$STATS_SECRET|g" /opt/hysteria-panel/app.py
+sed -i "s|OBFS_PASS_PLACEHOLDER|$OBFS_PASS|g" /opt/hysteria-panel/app.py
 ok "Panel app.py created."
 
 # -----------------------------------------------------------
