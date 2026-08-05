@@ -12,10 +12,14 @@ It checks:
 
 1. **Hysteria Server** service status
 2. **Python Web Panel** service status
-3. **UDP Port 10443** listening status
-4. **Python Auth API** connectivity
-5. **SSL Certificate** file presence
-6. Recent **Hysteria Server logs**
+3. **Nginx Web Server** service status
+4. **UDP Port 10443** listening status
+5. **Port Hopping (20000-50000)** iptables NAT rule
+6. **Python Auth API** connectivity
+7. **Traffic Stats API** (port 4000) connectivity
+8. **SSL Certificate** presence
+
+Plus the last 10 lines of Hysteria Server logs.
 
 ---
 

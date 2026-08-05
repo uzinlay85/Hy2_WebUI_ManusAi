@@ -2,52 +2,76 @@
 
 # =============================================================
 #  Hysteria 2 + Python Web Panel - 1-Click Auto Checker Script
+#  Version 2.0 - Comprehensive 8-point system check
 # =============================================================
 
 echo "====================================================="
-echo "🔍 Hysteria 2 အလိုအလျောက် စစ်ဆေးရေးစနစ် စတင်နေပါသည်..."
+echo "🔍 Hysteria 2 အလိုအလျောက် စစ်ဆေးရေးစနစ် (v2.0)"
 echo "====================================================="
 
 # 1. Check Hysteria Service
 echo -n "၁။ Hysteria Server အခြေအနေ: "
 if systemctl is-active --quiet hysteria-server; then
-    echo -e "\e[32m✅ RUNNING (အလုပ်လုပ်နေပါသည်)\e[0m"
+    echo -e "\e[32m✅ RUNNING\e[0m"
 else
-    echo -e "\e[31m❌ FAILED (ရပ်တန့်နေပါသည်)\e[0m"
+    echo -e "\e[31m❌ FAILED\e[0m"
 fi
 
 # 2. Check Python Panel Service
 echo -n "၂။ Python Web Panel အခြေအနေ: "
 if systemctl is-active --quiet hysteria-panel; then
-    echo -e "\e[32m✅ RUNNING (အလုပ်လုပ်နေပါသည်)\e[0m"
+    echo -e "\e[32m✅ RUNNING\e[0m"
 else
-    echo -e "\e[31m❌ FAILED (ရပ်တန့်နေပါသည်)\e[0m"
+    echo -e "\e[31m❌ FAILED\e[0m"
 fi
 
-# 3. Check UDP Port 10443
-echo -n "၃။ Port 10443 (UDP) ပွင့်/မပွင့်: "
+# 3. Check Nginx Web Server
+echo -n "၃။ Nginx Web Server အခြေအနေ: "
+if systemctl is-active --quiet nginx; then
+    echo -e "\e[32m✅ RUNNING\e[0m"
+else
+    echo -e "\e[31m❌ FAILED\e[0m"
+fi
+
+# 4. Check UDP Port 10443
+echo -n "၄။ Port 10443 (UDP) ပွင့်/မပွင့်: "
 if ss -ulnp | grep -q "10443"; then
-    echo -e "\e[32m✅ LISTENING (ပွင့်နေပါသည်)\e[0m"
+    echo -e "\e[32m✅ LISTENING\e[0m"
 else
-    echo -e "\e[31m❌ NOT LISTENING (ပိတ်နေပါသည်)\e[0m"
+    echo -e "\e[31m❌ NOT LISTENING\e[0m"
 fi
 
-# 4. Check Auth Backend API
-echo -n "၄။ Python Auth API ချိတ်ဆက်မှု: "
+# 5. Check Port Hopping (iptables NAT)
+echo -n "၅။ Port Hopping (20000-50000) အလုပ်လုပ်/မလုပ်: "
+if iptables -t nat -L PREROUTING -n -v | grep -q "dpts:20000:50000 redir ports 10443"; then
+    echo -e "\e[32m✅ ACTIVE (Rule ဝင်နေပါသည်)\e[0m"
+else
+    echo -e "\e[31m❌ MISSING (Rule မရှိပါ)\e[0m"
+fi
+
+# 6. Check Auth Backend API
+echo -n "၆။ Python Auth API ချိတ်ဆက်မှု: "
 AUTH_RES=$(curl -s -X POST http://127.0.0.1:5000/auth -H "Content-Type: application/json" -d "{\"auth\": \"test_check\"}")
 if echo "$AUTH_RES" | grep -q "ok"; then
-    echo -e "\e[32m✅ RESPONDING (ချိတ်ဆက်မှု ရရှိပါသည်)\e[0m"
+    echo -e "\e[32m✅ RESPONDING\e[0m"
 else
-    echo -e "\e[31m❌ FAILED (ချိတ်ဆက်၍ မရပါ)\e[0m"
+    echo -e "\e[31m❌ FAILED\e[0m"
 fi
 
-# 5. Check SSL Certificates
-DOMAIN="${1:-hy2-bear.truehand.top}"
-echo -n "၅။ SSL Certificate ဖိုင်များ: "
-if [ -f "/etc/letsencrypt/live/$DOMAIN/fullchain.pem" ]; then
-    echo -e "\e[32m✅ FOUND (တွေ့ရှိပါသည်)\e[0m"
+# 7. Check Traffic Stats API
+echo -n "၇။ Data Usage (Traffic Stats) API: "
+if curl -s --max-time 2 http://127.0.0.1:4000/traffic | grep -q "{"; then
+    echo -e "\e[32m✅ RESPONDING\e[0m"
 else
-    echo -e "\e[31m❌ MISSING (ရှာမတွေ့ပါ - SSL မရရှိသေးပါ)\e[0m"
+    echo -e "\e[31m❌ FAILED\e[0m"
+fi
+
+# 8. Check SSL Certificates
+echo -n "၈။ SSL Certificate ဖိုင်များ: "
+if [ -d "/etc/letsencrypt/live" ] && [ "$(ls -A /etc/letsencrypt/live | grep -v README)" ]; then
+    echo -e "\e[32m✅ FOUND\e[0m"
+else
+    echo -e "\e[31m❌ MISSING\e[0m"
 fi
 
 echo "====================================================="
