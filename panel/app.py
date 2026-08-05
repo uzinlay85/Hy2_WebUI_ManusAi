@@ -75,10 +75,11 @@ def get_admin_pass():
 
 def get_traffic_stats():
     try:
-        # URL-encode the secret to handle special chars (e.g. +) that would
-        # otherwise be decoded as space by the Go HTTP server, causing 401.
-        encoded_secret = urllib.parse.quote(STATS_SECRET, safe='')
-        req = urllib.request.Request(f"http://127.0.0.1:4000/traffic?secret={encoded_secret}")
+        # Hysteria 2 trafficStats API expects `Authorization: <secret>` header directly (no Bearer prefix)
+        req = urllib.request.Request(
+            "http://127.0.0.1:4000/traffic",
+            headers={"Authorization": STATS_SECRET}
+        )
         with urllib.request.urlopen(req, timeout=2) as response:
             return json.loads(response.read().decode())
     except Exception:

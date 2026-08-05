@@ -82,17 +82,17 @@ else
     echo -e "\e[31m❌ FAILED\e[0m"
 fi
 
-# 7. Check Traffic Stats API — use URL-encoded secret, check HTTP 200 status
+# 7. Check Traffic Stats API — send secret via Authorization header
 echo -n "၇။ Data Usage (Traffic Stats) API: "
-if [ -n "$ENCODED_SECRET" ]; then
+if [ -n "$STATS_SECRET" ]; then
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 \
-        "http://127.0.0.1:4000/traffic?secret=${ENCODED_SECRET}")
+        -H "Authorization: ${STATS_SECRET}" \
+        "http://127.0.0.1:4000/traffic")
     if [ "$HTTP_CODE" = "200" ]; then
         echo -e "\e[32m✅ RESPONDING (HTTP 200)\e[0m"
     else
         echo -e "\e[31m❌ FAILED (HTTP $HTTP_CODE)\e[0m"
-        echo "   ↳ Raw secret   : ${STATS_SECRET:0:8}..."
-        echo "   ↳ Encoded secret: ${ENCODED_SECRET:0:8}..."
+        echo "   ↳ Secret used: ${STATS_SECRET:0:8}..."
     fi
 else
     echo -e "\e[31m❌ FAILED (secret ကို $APP_PY မှ ဖတ်မရပါ)\e[0m"

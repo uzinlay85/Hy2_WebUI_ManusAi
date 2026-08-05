@@ -108,10 +108,9 @@ def get_admin_pass():
 
 def get_traffic_stats():
     try:
-        # URL-encode secret so special chars like + are not misread as space
-        encoded_secret = urllib.parse.quote(STATS_SECRET, safe='')
         req = urllib.request.Request(
-            f"http://127.0.0.1:4000/traffic?secret={encoded_secret}"
+            "http://127.0.0.1:4000/traffic",
+            headers={"Authorization": STATS_SECRET}
         )
         with urllib.request.urlopen(req, timeout=2) as response:
             return json.loads(response.read().decode())
