@@ -178,14 +178,24 @@ Run the auto-checker to diagnose any issues:
 bash check_hysteria.sh
 ```
 
+Or use the 1-line command:
+
+```bash
+wget -O check.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh && bash check.sh
+```
+
 It checks:
 
-- Hysteria server service status
-- Python panel service status
-- UDP port 10443 listening
-- Auth API connectivity
-- SSL certificate presence
-- Recent server logs
+1. Hysteria server service status
+2. Python panel service status
+3. Nginx web server status
+4. UDP port 10443 listening
+5. Port hopping (20000-50000) iptables NAT rule
+6. Auth API connectivity
+7. Traffic stats API connectivity
+8. SSL certificate presence
+
+Plus the last 10 lines of Hysteria server logs.
 
 ---
 
