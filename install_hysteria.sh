@@ -365,8 +365,8 @@ ok "Nginx + SSL configured."
 # -----------------------------------------------------------
 # 6. Hysteria 2 Install & Config (v4.0 - tuned)
 # -----------------------------------------------------------
-echo "net.core.rmem_max=8388608" >> /etc/sysctl.conf
-echo "net.core.wmem_max=8388608" >> /etc/sysctl.conf
+echo "net.core.rmem_max=33554432" >> /etc/sysctl.conf
+echo "net.core.wmem_max=33554432" >> /etc/sysctl.conf
 sysctl -p
 
 bash <(curl -fsSL https://get.hy2.sh/)
@@ -378,12 +378,12 @@ tls:
   cert: /etc/letsencrypt/live/$DOMAIN/fullchain.pem
   key: /etc/letsencrypt/live/$DOMAIN/privkey.pem
 
-# Performance tuning (official recommendations)
+# Ultra High-Speed Performance Tuning (16MB Stream / 32MB Conn Buffer)
 quic:
-  initStreamReceiveWindow: 8388608
-  maxStreamReceiveWindow: 8388608
-  initConnReceiveWindow: 20971520
-  maxConnReceiveWindow: 20971520
+  initStreamReceiveWindow: 16777216
+  maxStreamReceiveWindow: 16777216
+  initConnReceiveWindow: 33554432
+  maxConnReceiveWindow: 33554432
   maxIdleTimeout: 30s
   keepAlivePeriod: 10s
 

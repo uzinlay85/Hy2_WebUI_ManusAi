@@ -9,12 +9,12 @@ tls:
   cert: /etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem
   key: /etc/letsencrypt/live/YOUR_DOMAIN/privkey.pem
 
-# Performance tuning (official recommendations)
+# Ultra High-Speed Performance Tuning (16MB Stream / 32MB Conn Buffer)
 quic:
-  initStreamReceiveWindow: 8388608
-  maxStreamReceiveWindow: 8388608
-  initConnReceiveWindow: 20971520
-  maxConnReceiveWindow: 20971520
+  initStreamReceiveWindow: 16777216
+  maxStreamReceiveWindow: 16777216
+  initConnReceiveWindow: 33554432
+  maxConnReceiveWindow: 33554432
   maxIdleTimeout: 30s
   keepAlivePeriod: 10s
 
