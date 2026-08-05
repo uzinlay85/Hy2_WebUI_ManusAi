@@ -122,15 +122,19 @@ def format_last_seen(dt_str):
 @app.route("/auth", methods=["POST"])
 def auth():
     """Hysteria HTTP auth endpoint. Validates user password + limits."""
-    data = request.json
-    client_auth = data.get("auth")
+    data = request.json or {}
+    raw_auth = data.get("auth", "")
+    unquoted_auth = urllib.parse.unquote(raw_auth)
     conn = get_db()
-    user = conn.execute("SELECT * FROM users WHERE password = ?", (client_auth,)).fetchone()
+    user = conn.execute(
+        "SELECT * FROM users WHERE password = ? OR password = ?",
+        (unquoted_auth, raw_auth)
+    ).fetchone()
 
     if user:
-        # Update last seen timestamp upon authentication attempt
+        real_pass = user['password']
         now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        conn.execute("UPDATE users SET last_seen = ? WHERE password = ?", (now_str, client_auth))
+        conn.execute("UPDATE users SET last_seen = ? WHERE password = ?", (now_str, real_pass))
         conn.commit()
         conn.close()
 
@@ -144,12 +148,12 @@ def auth():
         limit_gb = user['limit_gb']
         if limit_gb and limit_gb > 0:
             stats = get_traffic_stats()
-            user_stat = stats.get(client_auth, {})
+            user_stat = stats.get(real_pass) or stats.get(raw_auth, {})
             total_used = user_stat.get('tx', 0) + user_stat.get('rx', 0)
             if total_used >= (limit_gb * 1024 * 1024 * 1024):
                 return jsonify({"ok": False}), 401
 
-        return jsonify({"ok": True, "id": client_auth}), 200
+        return jsonify({"ok": True, "id": real_pass}), 200
 
     conn.close()
     return jsonify({"ok": False}), 401
@@ -343,17 +347,31 @@ def index():
 
     for u in db_users:
         user = dict(u)
-        user_stat = stats.get(user['password'], {})
+        pwd = user['password']
+        quoted_pwd = urllib.parse.quote(pwd, safe='')
+        unquoted_pwd = urllib.parse.unquote(pwd)
+
+        user_stat = (
+            stats.get(pwd) or
+            stats.get(quoted_pwd) or
+            stats.get(unquoted_pwd) or
+            {}
+        )
         user['tx'] = user_stat.get('tx', 0)
         user['rx'] = user_stat.get('rx', 0)
         total_used = user['tx'] + user['rx']
 
         # Check online status from Hysteria /online API
-        is_online = online_map.get(user['password'], 0) > 0
+        online_cnt = (
+            online_map.get(pwd, 0) or
+            online_map.get(quoted_pwd, 0) or
+            online_map.get(unquoted_pwd, 0)
+        )
+        is_online = online_cnt > 0
         if is_online:
             user['status'] = 'Online'
             user['last_seen'] = now_str
-            users_to_update_last_seen.append(user['password'])
+            users_to_update_last_seen.append(pwd)
         else:
             user['status'] = 'Offline'
 
