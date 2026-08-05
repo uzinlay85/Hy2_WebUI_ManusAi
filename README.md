@@ -13,7 +13,7 @@ Linux VPS များတွင် **Hysteria 2 VPN** နှင့် **Python (
 - 👥 **User Management** — User အသစ်ထည့်ခြင်း / ဖျက်ခြင်း
 - 📊 **Data Limits** — User တစ်ဦးချင်းစီအတွက် Data Limit (GB) သတ်မှတ်နိုင်ခြင်း (`0` = အကန့်အသတ်မရှိ)
 - ⏳ **Expiry Dates** — User တစ်ဦးချင်းစီအတွက် သက်တမ်းရက် (Days) သတ်မှတ်နိုင်ခြင်း (`0` = အကန့်အသတ်မရှိ)
-- 🟢 **Real-time Status Badges** — Active / Expired / Data Full အခြေအနေများကို တိုက်ရိုက်ပြသပေးခြင်း
+- 🟢 **Real-time Status Badges** — Active / Expired / Data Full / 🟢 Online / ⚪ Offline အခြေအနေများ ပြသပေးခြင်း
 - 📈 **Traffic Statistics** — Hysteria trafficStats API မှတစ်ဆင့် Real-time Data သုံးစွဲမှုကို ပြသပေးခြင်း
 - 🎯 **Port Hopping** — **nftables** ဖြင့် စိတ်ချရသော UDP Port Hopping (20000-50000) စနစ်
 - 🛡️ **Anti-DPI Obfuscation** — Salamander obfs + HTTPS masquerade (Bing) ဖြင့် VPN Traffic ကို ဖုံးကွယ်ခြင်း
@@ -62,11 +62,11 @@ wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi
 
 ### User အသစ်ထည့်ခြင်း
 1. **📝 Name**: User နာမည် ရိုက်ထည့်ပါ
-2. **👤 Password**: Password ရိုက်ထည့်ပါ (သို့မဟုတ် အလိုအလျောက် ထွက်လာသော Password သုံးပါ)
+2. **👤 Password**: Password ရိုက်ထည့်ပါ (စာလုံးနှင့် ဂဏန်းများ သီးသန့် သုံးရန် အကြံပြုပါသည်)
 3. **Data Limit (GB)**: အသုံးပြုနိုင်မည့် Data အကန့်အသတ် (GB) (`0` ဆိုပါက အကန့်အသတ်မရှိ)
 4. **Days**: အသုံးပြုနိုင်မည့် ရက်ပေါင်း (`0` ဆိုပါက အကန့်အသတ်မရှိ)
 5. **➕ Add User** ကို နှိပ်ပါ
-6. ထွက်လာသော **Client URL** ကို `📋 Copy URL` နှိပ်၍ Client App (Hiddify, v2rayN, sing-box) များတွင် ထည့်သွင်းသုံးစွဲပါ။
+6. ထွက်လာသော **Client URL** ကို `📋 Copy URL` နှိပ်၍ Client App (Happ, Nekobox, v2raytun, Hiddify, v2rayN) များတွင် ထည့်သွင်းသုံးစွဲပါ။
 
 ---
 
@@ -78,44 +78,100 @@ wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi
 ```bash
 cat /etc/hysteria/config.yaml
 ```
-> **စစ်ဆေးရမည့် အချက်များ:**
-> - `listen`: Port `10443` ဖြင့် ငြိမ်နေသလား။
-> - `tls`: SSL Certificate (`fullchain.pem` နှင့် `privkey.pem`) လမ်းကြောင်း မှန်သလား။
-> - `obfs.salamander.password`: Obfuscation Password ရှိသလား။
-> - `auth.http.url`: `http://127.0.0.1:5000/auth` သို့ ညွှန်ထားသလား။
-> - `trafficStats.secret`: Secret key ပါဝင်ပြီး `listen: 127.0.0.1:4000` ဖြစ်နေသလား။
 
 ### ၂။ Python Web Panel App Code ကို စစ်ဆေးရန်
 ```bash
 cat /opt/hysteria-panel/app.py
 ```
-> **စစ်ဆေးရမည့် အချက်များ:**
-> - `STATS_SECRET` နှင့် `OBFS_PASS` နေရာတွင် သက်ဆိုင်ရာ Secret များ မှန်ကန်စွာ အစားထိုးဝင်ရောက်ထားသလား။
-> - `get_traffic_stats()` ထဲတွင် `headers={"Authorization": STATS_SECRET}` ဖြင့် Request ပို့ထားသလား။
-> - Client URL ထုတ်ပေးသော နေရာတွင် `insecure=0` ဖြစ်နေသလား။
 
 ### ၃။ Python Panel Systemd Service ကို စစ်ဆေးရန်
 ```bash
 cat /etc/systemd/system/hysteria-panel.service
 ```
-> **စစ်ဆေးရမည့် အချက်များ:**
-> - `ExecStart` သည် `/opt/hysteria-panel/venv/bin/python /opt/hysteria-panel/app.py` ဖြစ်နေသလား။
-> - `Restart=always` ပါဝင်သလား။
 
 ### ၄။ Nginx Reverse Proxy Config ကို စစ်ဆေးရန်
 ```bash
 cat /etc/nginx/sites-available/hysteria_panel
 ```
-> **စစ်ဆေးရမည့် အချက်များ:**
-> - `server_name` တွင် သင့် Domain Name ကို တွေ့ရသလား။
-> - `proxy_pass http://127.0.0.1:5000;` သို့ လမ်းကြောင်းညွှန်ထားသလား။
 
 ### ၅။ Port Hopping nftables Firewall Rule ကို စစ်ဆေးရန်
 ```bash
 cat /etc/nftables.d/hysteria.nft
 ```
-> **စစ်ဆေးရမည့် အချက်များ:**
-> - `udp dport 20000-50000 redirect to :10443` စာကြောင်း ပါဝင်နေသလား။
+
+---
+
+## 📊 တစ်ခုချင်းစီ သီးသန့် Manual စစ်ဆေး/စောင့်ကြည့်နည်းများ (Manual Monitoring & Diagnostics)
+
+စနစ်တစ်ခုချင်းစီ၏ အခြေအနေ၊ Log များနှင့် API တုံ့ပြန်မှုများကို Manual စစ်ဆေးလိုပါက အောက်ပါ Command များကို သီးသန့် ရိုက်နှိပ် စစ်ဆေးနိုင်ပါသည်။
+
+### 1. Hysteria 2 Server အခြေအနေနှင့် Log များ စစ်ဆေးရန်
+```bash
+# Service Status စစ်ရန်
+systemctl status hysteria-server
+
+# Log နောက်ဆုံး ၂၀ ကြောင်း ကြည့်ရန်
+journalctl -u hysteria-server -n 20 --no-pager
+```
+
+### 2. Python Web Panel အခြေအနေနှင့် Log များ စစ်ဆေးရန်
+```bash
+# Service Status စစ်ရန်
+systemctl status hysteria-panel
+
+# Log နောက်ဆုံး ၂၀ ကြောင်း ကြည့်ရန်
+journalctl -u hysteria-panel -n 20 --no-pager
+```
+
+### 3. Nginx Web Server အခြေအနေနှင့် Syntax စစ်ဆေးရန်
+```bash
+# Status စစ်ရန်
+systemctl status nginx
+
+# Nginx Config Syntax အမှားပါမပါ စစ်ရန်
+nginx -t
+```
+
+### 4. UDP Port 10443 Listening ဟုတ်/မဟုတ် စစ်ဆေးရန်
+```bash
+ss -ulnp | grep 10443
+```
+
+### 5. Port Hopping (20000-50000) nftables NAT Rule စစ်ဆေးရန်
+```bash
+nft list table ip hysteria_nat
+```
+
+### 6. Python Auth API (`/auth`) တုံ့ပြန်မှု စစ်ဆေးရန်
+```bash
+curl -s -X POST http://127.0.0.1:5000/auth -H "Content-Type: application/json" -d '{"auth": "test_user"}'
+```
+
+### 7. Traffic Stats API (`/traffic`) တုံ့ပြန်မှု စစ်ဆေးရန်
+```bash
+SECRET=$(grep "secret:" /etc/hysteria/config.yaml | tail -1 | awk '{print $2}')
+curl -s -H "Authorization: $SECRET" "http://127.0.0.1:4000/traffic"
+```
+
+### 8. Online Clients API (`/online`) လက်ရှိ ချိတ်ဆက်သူများ စစ်ဆေးရန်
+```bash
+SECRET=$(grep "secret:" /etc/hysteria/config.yaml | tail -1 | awk '{print $2}')
+curl -s -H "Authorization: $SECRET" "http://127.0.0.1:4000/online"
+```
+
+### 9. Let's Encrypt SSL Certificate သက်တမ်းနှင့် ဖိုင်များ စစ်ဆေးရန်
+```bash
+# Certificate ဖိုင်များ စစ်ရန်
+ls -la /etc/letsencrypt/live/
+
+# SSL Certificate သက်တမ်း စစ်ရန်
+certbot certificates
+```
+
+### 10. SQLite Database ထဲရှိ Users စာရင်း စစ်ဆေးရန်
+```bash
+sqlite3 /opt/hysteria-panel/users.db "SELECT * FROM users;"
+```
 
 ---
 
@@ -126,17 +182,6 @@ cat /etc/nftables.d/hysteria.nft
 ```bash
 wget --no-cache -O check.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh?$(date +%s)" && bash check.sh
 ```
-
-**စစ်ဆေးပေးမည့် အချက် (၈) ချက်:**
-1. ✅ Hysteria Server Service (Running status)
-2. ✅ Python Web Panel Service (Running status)
-3. ✅ Nginx Web Server (Running status)
-4. ✅ Port 10443 (UDP Listened status)
-5. ✅ Port Hopping 20000-50000 (nftables NAT rule status)
-6. ✅ Python Auth API (`/auth` endpoint status)
-7. ✅ Traffic Stats API (HTTP 200 with Authorization header status)
-8. ✅ Let's Encrypt SSL Certificates (Found status)
-9. 📜 Hysteria Server Log နောက်ဆုံး ၁၀ ကြောင်း
 
 ---
 
@@ -174,4 +219,4 @@ Hy2_WebUI_ManusAi/
 
 ## 🤝 ကူညီထောက်ပံ့မှု (Support)
 
-ပြဿနာ တစ်စုံတစ်ရာ ရှိပါက Auto Checker Script ကို ရိုက်နှိပ်၍ ထွက်လာသော ရလဒ်များဖြင့် စစ်ဆေးနိုင်ပါသည်။
+ပြဿနာ တစ်စုံတစ်ရာ ရှိပါက Auto Checker Script သို့မဟုတ် သီးသန့် Manual Command များဖြင့် စစ်ဆေးနိုင်ပါသည်။
