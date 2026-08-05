@@ -5,7 +5,7 @@ Flask-based web UI for managing Hysteria 2 VPN users with:
 - User add/delete management
 - Data limits (GB)
 - Expiry dates (days)
-- Real-time traffic statistics
+- Real-time traffic statistics & online status
 - Hysteria HTTP auth backend
 
 Run (development):
@@ -14,10 +14,6 @@ Run (development):
 
 In production, this is served via Nginx reverse proxy and
 managed by systemd (see config/hysteria-panel.service).
-
-NOTE: OBFS_PASS and STATS_SECRET are injected by install_hysteria.sh
-      via `sed` after this file is written to /opt/hysteria-panel/app.py.
-      The placeholders below are replaced with real values at install time.
 """
 
 from flask import Flask, request, jsonify, render_template_string, redirect, url_for, session
@@ -28,10 +24,8 @@ app.secret_key = os.urandom(24)
 DB_FILE = '/opt/hysteria-panel/users.db'
 HYSTERIA_PORT = '10443'
 # Anti-DPI obfuscation password (must match config.yaml obfs.salamander.password)
-# Replaced by install_hysteria.sh: sed -i "s/OBFS_PASS_PLACEHOLDER/$OBFS_PASS/g"
 OBFS_PASS = 'OBFS_PASS_PLACEHOLDER'
 # Traffic stats secret (must match config.yaml trafficStats.secret)
-# Replaced by install_hysteria.sh: sed -i "s/STATS_SECRET_PLACEHOLDER/$STATS_SECRET/g"
 STATS_SECRET = 'STATS_SECRET_PLACEHOLDER'
 
 
@@ -57,6 +51,10 @@ def init_db():
         conn.execute("ALTER TABLE users ADD COLUMN expiry_date TEXT")
     except Exception:
         pass
+    try:
+        conn.execute("ALTER TABLE users ADD COLUMN last_seen TEXT")
+    except Exception:
+        pass
     if not conn.execute("SELECT value FROM settings WHERE key = 'admin_pass'").fetchone():
         conn.execute("INSERT INTO settings (key, value) VALUES ('admin_pass', 'admin123')")
     conn.commit()
@@ -75,7 +73,6 @@ def get_admin_pass():
 
 def get_traffic_stats():
     try:
-        # Hysteria 2 trafficStats API expects `Authorization: <secret>` header directly (no Bearer prefix)
         req = urllib.request.Request(
             "http://127.0.0.1:4000/traffic",
             headers={"Authorization": STATS_SECRET}
@@ -86,6 +83,42 @@ def get_traffic_stats():
         return {}
 
 
+def get_online_clients():
+    try:
+        req = urllib.request.Request(
+            "http://127.0.0.1:4000/online",
+            headers={"Authorization": STATS_SECRET}
+        )
+        with urllib.request.urlopen(req, timeout=2) as response:
+            return json.loads(response.read().decode())
+    except Exception:
+        return {}
+
+
+def format_last_seen(dt_str):
+    if not dt_str:
+        return "Never"
+    try:
+        dt = datetime.datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
+        now = datetime.datetime.now()
+        diff = now - dt
+        seconds = int(diff.total_seconds())
+        if seconds < 0 or seconds < 60:
+            return "Just now"
+        minutes = seconds // 60
+        if minutes < 60:
+            return f"{minutes}m ago"
+        hours = minutes // 60
+        if hours < 24:
+            return f"{hours}h ago"
+        days = hours // 24
+        if days < 30:
+            return f"{days}d ago"
+        return dt.strftime('%Y-%m-%d')
+    except Exception:
+        return dt_str
+
+
 @app.route("/auth", methods=["POST"])
 def auth():
     """Hysteria HTTP auth endpoint. Validates user password + limits."""
@@ -93,9 +126,14 @@ def auth():
     client_auth = data.get("auth")
     conn = get_db()
     user = conn.execute("SELECT * FROM users WHERE password = ?", (client_auth,)).fetchone()
-    conn.close()
 
     if user:
+        # Update last seen timestamp upon authentication attempt
+        now_str = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        conn.execute("UPDATE users SET last_seen = ? WHERE password = ?", (now_str, client_auth))
+        conn.commit()
+        conn.close()
+
         # 1. Check Expiry Date
         if user['expiry_date']:
             exp_date = datetime.datetime.strptime(user['expiry_date'], '%Y-%m-%d')
@@ -113,6 +151,7 @@ def auth():
 
         return jsonify({"ok": True, "id": client_auth}), 200
 
+    conn.close()
     return jsonify({"ok": False}), 401
 
 
@@ -154,7 +193,7 @@ HTML_TEMPLATE = """
     <style>
         body { font-family: sans-serif; background: #f3f4f6; padding: 20px; margin: 0; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .container { max-width: 1200px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .container { max-width: 1250px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         input, button { padding: 10px; margin: 5px; border-radius: 4px; border: 1px solid #ccc; }
         button { background: #3b82f6; color: white; border: none; cursor: pointer; font-weight: bold; }
         .btn-copy { background: #10b981; padding: 6px 12px; font-size: 12px; margin-top: 5px; }
@@ -166,8 +205,9 @@ HTML_TEMPLATE = """
         .code { background: #1f2937; color: #10b981; padding: 8px; display: block; word-break: break-all; font-family: monospace; border-radius: 4px; }
         .settings-box { background: #fffbeb; padding: 15px; border-radius: 8px; border: 1px solid #fde68a; margin-top: 30px; }
         .usage-badge { background: #e0e7ff; color: #b45309; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; display: inline-block; margin-bottom: 2px; }
-        .status-active { color: #15803d; font-weight: bold; }
-        .status-error { color: #b91c1c; font-weight: bold; }
+        .status-online { color: #16a34a; font-weight: bold; background: #dcfce7; padding: 4px 10px; border-radius: 12px; font-size: 13px; display: inline-block; }
+        .status-offline { color: #4b5563; font-weight: bold; background: #f3f4f6; padding: 4px 10px; border-radius: 12px; font-size: 13px; display: inline-block; }
+        .status-error { color: #dc2626; font-weight: bold; background: #fee2e2; padding: 4px 10px; border-radius: 12px; font-size: 13px; display: inline-block; }
     </style>
     <script>
         function copyToClipboard(elementId) {
@@ -199,6 +239,7 @@ HTML_TEMPLATE = """
                     <th>Status</th>
                     <th>Data Usage / Limit</th>
                     <th>Left Days</th>
+                    <th>Last Seen</th>
                     <th>Client URL</th>
                     <th>Action</th>
                 </tr>
@@ -207,8 +248,10 @@ HTML_TEMPLATE = """
                     <td><b>{{ user['name'] or 'Unknown' }}</b></td>
                     <td>{{ user['password'] }}</td>
                     <td>
-                        {% if user['status'] == 'Active' %}
-                            <span class="status-active">🟢 Active</span>
+                        {% if user['status'] == 'Online' %}
+                            <span class="status-online">🟢 Online</span>
+                        {% elif user['status'] == 'Offline' %}
+                            <span class="status-offline">⚪ Offline</span>
                         {% else %}
                             <span class="status-error">🔴 {{ user['status'] }}</span>
                         {% endif %}
@@ -228,6 +271,10 @@ HTML_TEMPLATE = """
                         {% else %}
                             <b>Unlimited</b>
                         {% endif %}
+                    </td>
+                    <td style="min-width: 110px;">
+                        <b>{{ user['last_seen'] | last_seen }}</b><br>
+                        <small style="color: #6b7280;">{{ user['last_seen'] or 'Never' }}</small>
                     </td>
                     <td>
                         <span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&obfs=salamander&obfs-password={{ obfs_pass }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
@@ -283,13 +330,16 @@ def index():
 
     conn = get_db()
     db_users = conn.execute("SELECT * FROM users").fetchall()
-    conn.close()
 
     domain = request.host.split(":")[0]
     stats = get_traffic_stats()
+    online_map = get_online_clients()
 
     users_data = []
     now = datetime.datetime.now()
+    now_str = now.strftime('%Y-%m-%d %H:%M:%S')
+
+    users_to_update_last_seen = []
 
     for u in db_users:
         user = dict(u)
@@ -298,8 +348,16 @@ def index():
         user['rx'] = user_stat.get('rx', 0)
         total_used = user['tx'] + user['rx']
 
-        user['status'] = 'Active'
+        # Check online status from Hysteria /online API
+        is_online = online_map.get(user['password'], 0) > 0
+        if is_online:
+            user['status'] = 'Online'
+            user['last_seen'] = now_str
+            users_to_update_last_seen.append(user['password'])
+        else:
+            user['status'] = 'Offline'
 
+        # Check expiry date
         if user['expiry_date']:
             exp_date = datetime.datetime.strptime(user['expiry_date'], '%Y-%m-%d')
             left = (exp_date - now).days
@@ -309,18 +367,27 @@ def index():
         else:
             user['left_days'] = 'Unlimited'
 
+        # Check data limit
         if user['limit_gb'] and user['limit_gb'] > 0:
             if total_used >= (user['limit_gb'] * 1024 * 1024 * 1024):
                 user['status'] = 'Data Full'
 
         users_data.append(user)
 
+    # Batch update last_seen for currently online users
+    if users_to_update_last_seen:
+        for pass_val in users_to_update_last_seen:
+            conn.execute("UPDATE users SET last_seen = ? WHERE password = ?", (now_str, pass_val))
+        conn.commit()
+
+    conn.close()
+
     return render_template_string(
         HTML_TEMPLATE,
         users=users_data,
         domain=domain,
         port=HYSTERIA_PORT,
-        obfs_pass=OBFS_PASS,       # FIX: was missing — obfs URL param now shows correctly
+        obfs_pass=OBFS_PASS,
     )
 
 
@@ -342,7 +409,7 @@ def add_user():
         conn = get_db()
         try:
             conn.execute(
-                "INSERT INTO users (password, name, limit_gb, expiry_date) VALUES (?, ?, ?, ?)",
+                "INSERT INTO users (password, name, limit_gb, expiry_date, last_seen) VALUES (?, ?, ?, ?, NULL)",
                 (user_pass, user_name, limit_gb, expiry_date),
             )
             conn.commit()
@@ -397,6 +464,11 @@ def format_bytes(size):
         size /= power
         n += 1
     return f"{size:.2f} {power_labels[n]}"
+
+
+@app.template_filter('last_seen')
+def last_seen_filter(s):
+    return format_last_seen(s)
 
 
 if __name__ == "__main__":
