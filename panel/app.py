@@ -75,7 +75,10 @@ def get_admin_pass():
 
 def get_traffic_stats():
     try:
-        req = urllib.request.Request(f"http://127.0.0.1:4000/traffic?secret={STATS_SECRET}")
+        # URL-encode the secret to handle special chars (e.g. +) that would
+        # otherwise be decoded as space by the Go HTTP server, causing 401.
+        encoded_secret = urllib.parse.quote(STATS_SECRET, safe='')
+        req = urllib.request.Request(f"http://127.0.0.1:4000/traffic?secret={encoded_secret}")
         with urllib.request.urlopen(req, timeout=2) as response:
             return json.loads(response.read().decode())
     except Exception:

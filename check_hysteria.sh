@@ -10,21 +10,27 @@ echo "🔍 Hysteria 2 အလိုအလျောက် စစ်ဆေးရေ
 echo "====================================================="
 
 # ---------------------------------------------------------------------------
-# Extract STATS_SECRET robustly using awk (more reliable than sed)
-# Try app.py first, then fall back to config.yaml
+# Extract STATS_SECRET robustly using awk, then URL-encode it for curl
+# (+ in secrets becomes space in query params unless encoded as %2B)
 # ---------------------------------------------------------------------------
 STATS_SECRET=""
 APP_PY="/opt/hysteria-panel/app.py"
 CONFIG_YAML="/etc/hysteria/config.yaml"
 
 if [ -f "$APP_PY" ]; then
-    # awk: use single-quote as field delimiter, grab field 2 from matching line
     STATS_SECRET=$(grep "^STATS_SECRET" "$APP_PY" | head -1 | awk -F"'" '{print $2}')
 fi
 
-# Fallback: read from hysteria config.yaml if app.py extraction failed
+# Fallback: read from hysteria config.yaml
 if [ -z "$STATS_SECRET" ] && [ -f "$CONFIG_YAML" ]; then
     STATS_SECRET=$(grep "secret:" "$CONFIG_YAML" | tail -1 | awk '{print $2}')
+fi
+
+# URL-encode the secret (handles + → %2B, etc.) using Python3
+if [ -n "$STATS_SECRET" ]; then
+    ENCODED_SECRET=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$STATS_SECRET" 2>/dev/null)
+else
+    ENCODED_SECRET=""
 fi
 
 # 1. Check Hysteria Service
@@ -76,19 +82,20 @@ else
     echo -e "\e[31m❌ FAILED\e[0m"
 fi
 
-# 7. Check Traffic Stats API — check HTTP 200 status code instead of body content
+# 7. Check Traffic Stats API — use URL-encoded secret, check HTTP 200 status
 echo -n "၇။ Data Usage (Traffic Stats) API: "
-if [ -n "$STATS_SECRET" ]; then
+if [ -n "$ENCODED_SECRET" ]; then
     HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 \
-        "http://127.0.0.1:4000/traffic?secret=${STATS_SECRET}")
+        "http://127.0.0.1:4000/traffic?secret=${ENCODED_SECRET}")
     if [ "$HTTP_CODE" = "200" ]; then
         echo -e "\e[32m✅ RESPONDING (HTTP 200)\e[0m"
     else
-        echo -e "\e[31m❌ FAILED (HTTP $HTTP_CODE — secret မမှန်ကန်နိုင်ပါ)\e[0m"
-        echo "   ↳ Secret used: ${STATS_SECRET:0:6}... (first 6 chars)"
+        echo -e "\e[31m❌ FAILED (HTTP $HTTP_CODE)\e[0m"
+        echo "   ↳ Raw secret   : ${STATS_SECRET:0:8}..."
+        echo "   ↳ Encoded secret: ${ENCODED_SECRET:0:8}..."
     fi
 else
-    echo -e "\e[31m❌ FAILED (secret ကို /opt/hysteria-panel/app.py မှ ဖတ်မရပါ)\e[0m"
+    echo -e "\e[31m❌ FAILED (secret ကို $APP_PY မှ ဖတ်မရပါ)\e[0m"
 fi
 
 # 8. Check SSL Certificates
