@@ -45,6 +45,54 @@ Hy2_WebUI_ManusAi/
 
 ---
 
+## 📥 Download the Scripts to Your VPS
+
+> **Important:** The scripts are hosted on GitHub, **not** on your server. You must download them onto your VPS first before running them. The error `bash: check_hysteria.sh: No such file or directory` means the file isn't on your server yet.
+
+### Option A — Clone the whole repository (recommended, gets all files)
+
+```bash
+cd /home/zinko/testgit
+git clone https://github.com/uzinlay85/Hy2_WebUI_ManusAi.git .
+```
+
+### Option B — Download just one script at a time
+
+```bash
+# In the directory where you want the scripts (e.g. /home/zinko/testgit)
+cd /home/zinko/testgit
+
+# Download the checker script
+wget -O check_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh
+
+# Download the setup script
+wget -O install_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh
+
+# Download the uninstall script
+wget -O uninstall_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh
+```
+
+### Option C — Download a single file from GitHub web UI
+
+1. Open `https://github.com/uzinlay85/Hy2_WebUI_ManusAi`
+2. Click the file you want (e.g. `check_hysteria.sh`)
+3. Click the **Raw** button
+4. Right-click → **Save As** to save it on your computer
+5. Upload it to your VPS with `scp`:
+   ```bash
+   scp check_hysteria.sh root@YOUR_SERVER_IP:/home/zinko/testgit/
+   ```
+
+### Verify the file is there, then run it
+
+```bash
+ls -la check_hysteria.sh        # confirm the file exists
+chmod +x check_hysteria.sh      # make it executable
+bash check_hysteria.sh          # run it
+```
+
+---
+
 ## 🚀 Quick Start (1-Click Setup)
 
 ### Prerequisites
@@ -56,7 +104,8 @@ Hy2_WebUI_ManusAi/
 ### Run the setup script
 
 ```bash
-# Download the script
+# First, download the script to your VPS (see "Download the Scripts to Your VPS" above)
+cd /home/zinko/testgit
 wget -O install_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh
 
 # Make it executable

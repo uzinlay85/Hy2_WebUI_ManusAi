@@ -21,6 +21,19 @@ It checks:
 
 ## Common Issues & Fixes
 
+### 🔴 `bash: check_hysteria.sh: No such file or directory`
+
+This means the script hasn't been downloaded to your server yet. The scripts live on GitHub — you must download them to your VPS first. See the README section **"Download the Scripts to Your VPS"** for detailed options.
+
+Quick download (run on your VPS):
+
+```bash
+cd /home/zinko/testgit
+wget -O check_hysteria.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh
+chmod +x check_hysteria.sh
+bash check_hysteria.sh
+```
+
 ### 🔴 Hysteria Server not running
 
 ```bash
