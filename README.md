@@ -112,6 +112,9 @@ systemctl status hysteria-server
 
 # Log နောက်ဆုံး ၂၀ ကြောင်း ကြည့်ရန်
 journalctl -u hysteria-server -n 20 --no-pager
+
+# Live Log များကို Real-time စောင့်ကြည့်ရန် (Ctrl + C ဖြင့် ထွက်ရန်)
+journalctl -u hysteria-server -f
 ```
 
 ### 2. Python Web Panel အခြေအနေနှင့် Log များ စစ်ဆေးရန်
@@ -121,6 +124,9 @@ systemctl status hysteria-panel
 
 # Log နောက်ဆုံး ၂၀ ကြောင်း ကြည့်ရန်
 journalctl -u hysteria-panel -n 20 --no-pager
+
+# Live Log များကို Real-time စောင့်ကြည့်ရန် (Ctrl + C ဖြင့် ထွက်ရန်)
+journalctl -u hysteria-panel -f
 ```
 
 ### 3. Nginx Web Server အခြေအနေနှင့် Syntax စစ်ဆေးရန်
