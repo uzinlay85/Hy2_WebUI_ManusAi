@@ -74,6 +74,8 @@ DB_FILE = '/opt/hysteria-panel/users.db'
 HYSTERIA_PORT = '10443'
 # Traffic stats secret (must match config.yaml trafficStats.secret)
 STATS_SECRET = 'STATS_SECRET_PLACEHOLDER'
+# Obfuscation password (must match config.yaml obfs.salamander.password)
+OBFS_PASS = 'OBFS_PASS_PLACEHOLDER'
 
 def get_db():
     conn = sqlite3.connect(DB_FILE)
@@ -121,9 +123,11 @@ def auth():
     user = conn.execute("SELECT * FROM users WHERE password = ?", (client_auth,)).fetchone()
     conn.close()
     if user:
+        # 1. Check Expiry Date
         if user['expiry_date']:
             exp_date = datetime.datetime.strptime(user['expiry_date'], '%Y-%m-%d')
             if datetime.datetime.now() > exp_date: return jsonify({"ok": False}), 401
+        # 2. Check Data Limit
         limit_gb = user['limit_gb']
         if limit_gb and limit_gb > 0:
             stats = get_traffic_stats()
@@ -138,7 +142,7 @@ LOGIN_TEMPLATE = """
 """
 
 HTML_TEMPLATE = """
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Hysteria 2 Manager</title><style>body{font-family:sans-serif;background:#f3f4f6;padding:20px;margin:0;}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}.container{max-width:1200px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);}input,button{padding:10px;margin:5px;border-radius:4px;border:1px solid #ccc;}button{background:#3b82f6;color:white;border:none;cursor:pointer;font-weight:bold;}.btn-copy{background:#10b981;padding:6px 12px;font-size:12px;margin-top:5px;}.btn-danger{background:#ef4444;}.btn-logout{background:#6b7280;text-decoration:none;padding:8px 15px;color:white;border-radius:4px;font-size:14px;font-weight:bold;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:14px;}th,td{padding:12px;border:1px solid #ddd;text-align:left;}th{background:#f9fafb;}.code{background:#1f2937;color:#10b981;padding:8px;display:block;word-break:break-all;font-family:monospace;border-radius:4px;}.settings-box{background:#fffbeb;padding:15px;border-radius:8px;border:1px solid #fde68a;margin-top:30px;}.usage-badge{background:#e0e7ff;color:#b45309;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:13px;display:inline-block;margin-bottom:2px;}.status-active{color:#15803d;font-weight:bold;}.status-error{color:#b91c1c;font-weight:bold;}</style><script>function copyToClipboard(id){navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>alert('✅ URL Copied!'));}</script></head><body><div class="container"><div class="header"><h2 style="margin:0;">⚡ Hysteria 2 User Management</h2><a href="/logout" class="btn-logout">🚪 Logout</a></div><form method="POST" action="/add" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#f9fafb;padding:15px;border-radius:8px;"><input type="text" name="user_name" placeholder="📝 Name" required style="flex:1;min-width:100px;"><input type="text" name="user_pass" placeholder="👤 Password" required style="flex:1;min-width:100px;"><input type="number" step="0.1" name="limit_gb" placeholder="Data Limit (GB) [0=Unl]" required style="flex:1;min-width:120px;" value="0"><input type="number" name="days" placeholder="Days [0=Unl]" required style="flex:1;min-width:100px;" value="0"><button type="submit">➕ Add User</button></form><div style="overflow-x:auto;"><table><tr><th>Name</th><th>Password</th><th>Status</th><th>Data Usage / Limit</th><th>Left Days</th><th>Client URL</th><th>Action</th></tr>{% for user in users %}<tr><td><b>{{ user['name'] or 'Unknown' }}</b></td><td>{{ user['password'] }}</td><td>{% if user['status'] == 'Active' %}<span class="status-active">🟢 Active</span>{% else %}<span class="status-error">🔴 {{ user['status'] }}</span>{% endif %}</td><td style="min-width:140px;"><span class="usage-badge">⬇️ {{ user['tx'] | format_bytes }}</span><br><span class="usage-badge" style="background:#dcfce7;color:#4338ca;">⬆️ {{ user['rx'] | format_bytes }}</span><br><small style="color:#6b7280;font-weight:bold;">Total: {{ (user['tx'] + user['rx']) | format_bytes }} / {% if user['limit_gb'] > 0 %}{{ user['limit_gb'] }} GB{% else %}Unlimited{% endif %}</small></td><td>{% if user['expiry_date'] %}<b>{{ user['left_days'] }} Days</b><br><small style="color:#6b7280;">(Exp: {{ user['expiry_date'] }})</small>{% else %}<b>Unlimited</b>{% endif %}</td><td><span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&obfs=salamander&obfs-password=\{\{ obfs_pass \}\}&mport=20000-50000#{{ user['name'] | urlencode }}</span><button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button></td><td><form method="POST" action="/delete" style="margin:0;" onsubmit="return confirm('Delete this user?');"><input type="hidden" name="user_pass" value="{{ user['password'] }}"><button type="submit" class="btn-danger">🗑️</button></form></td></tr>{% endfor %}</table></div><div class="settings-box"><h3 style="margin-top:0;color:#92400e;">⚙️ Change Admin Password</h3><form method="POST" action="/change_pass" style="display:flex;flex-wrap:wrap;gap:10px;"><input type="password" name="current_pass" placeholder="Current Password" required><input type="password" name="new_pass" placeholder="New Password" required><button type="submit" style="background:#d97706;">🔄 Update</button></form></div></div></body></html>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Hysteria 2 Manager</title><style>body{font-family:sans-serif;background:#f3f4f6;padding:20px;margin:0;}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;}.container{max-width:1200px;margin:auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 6px rgba(0,0,0,0.1);}input,button{padding:10px;margin:5px;border-radius:4px;border:1px solid #ccc;}button{background:#3b82f6;color:white;border:none;cursor:pointer;font-weight:bold;}.btn-copy{background:#10b981;padding:6px 12px;font-size:12px;margin-top:5px;}.btn-danger{background:#ef4444;}.btn-logout{background:#6b7280;text-decoration:none;padding:8px 15px;color:white;border-radius:4px;font-size:14px;font-weight:bold;}table{width:100%;border-collapse:collapse;margin-top:20px;font-size:14px;}th,td{padding:12px;border:1px solid #ddd;text-align:left;}th{background:#f9fafb;}.code{background:#1f2937;color:#10b981;padding:8px;display:block;word-break:break-all;font-family:monospace;border-radius:4px;}.settings-box{background:#fffbeb;padding:15px;border-radius:8px;border:1px solid #fde68a;margin-top:30px;}.usage-badge{background:#e0e7ff;color:#b45309;padding:4px 8px;border-radius:4px;font-weight:bold;font-size:13px;display:inline-block;margin-bottom:2px;}.status-active{color:#15803d;font-weight:bold;}.status-error{color:#b91c1c;font-weight:bold;}</style><script>function copyToClipboard(id){navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>alert('✅ URL Copied!'));}</script></head><body><div class="container"><div class="header"><h2 style="margin:0;">⚡ Hysteria 2 User Management</h2><a href="/logout" class="btn-logout">🚪 Logout</a></div><form method="POST" action="/add" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#f9fafb;padding:15px;border-radius:8px;"><input type="text" name="user_name" placeholder="📝 Name" required style="flex:1;min-width:100px;"><input type="text" name="user_pass" placeholder="👤 Password" required style="flex:1;min-width:100px;"><input type="number" step="0.1" name="limit_gb" placeholder="Data Limit (GB) [0=Unl]" required style="flex:1;min-width:120px;" value="0"><input type="number" name="days" placeholder="Days [0=Unl]" required style="flex:1;min-width:100px;" value="0"><button type="submit">➕ Add User</button></form><div style="overflow-x:auto;"><table><tr><th>Name</th><th>Password</th><th>Status</th><th>Data Usage / Limit</th><th>Left Days</th><th>Client URL</th><th>Action</th></tr>{% for user in users %}<tr><td><b>{{ user['name'] or 'Unknown' }}</b></td><td>{{ user['password'] }}</td><td>{% if user['status'] == 'Active' %}<span class="status-active">🟢 Active</span>{% else %}<span class="status-error">🔴 {{ user['status'] }}</span>{% endif %}</td><td style="min-width:140px;"><span class="usage-badge">⬇️ {{ user['tx'] | format_bytes }}</span><br><span class="usage-badge" style="background:#dcfce7;color:#4338ca;">⬆️ {{ user['rx'] | format_bytes }}</span><br><small style="color:#6b7280;font-weight:bold;">Total: {{ (user['tx'] + user['rx']) | format_bytes }} / {% if user['limit_gb'] > 0 %}{{ user['limit_gb'] }} GB{% else %}Unlimited{% endif %}</small></td><td>{% if user['expiry_date'] %}<b>{{ user['left_days'] }} Days</b><br><small style="color:#6b7280;">(Exp: {{ user['expiry_date'] }})</small>{% else %}<b>Unlimited</b>{% endif %}</td><td><span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&obfs=salamander&obfs-password={{ obfs_pass }}&mport=20000-50000#{{ user['name'] | urlencode }}</span><button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button></td><td><form method="POST" action="/delete" style="margin:0;" onsubmit="return confirm('Delete this user?');"><input type="hidden" name="user_pass" value="{{ user['password'] }}"><button type="submit" class="btn-danger">🗑️</button></form></td></tr>{% endfor %}</table></div><div class="settings-box"><h3 style="margin-top:0;color:#92400e;">⚙️ Change Admin Password</h3><form method="POST" action="/change_pass" style="display:flex;flex-wrap:wrap;gap:10px;"><input type="password" name="current_pass" placeholder="Current Password" required><input type="password" name="new_pass" placeholder="New Password" required><button type="submit" style="background:#d97706;">🔄 Update</button></form></div></div></body></html>
 """
 
 @app.route("/login", methods=["GET", "POST"])
@@ -182,7 +186,7 @@ def index():
         if user['limit_gb'] and user['limit_gb'] > 0:
             if total_used >= (user['limit_gb'] * 1024 * 1024 * 1024): user['status'] = 'Data Full'
         users_data.append(user)
-    return render_template_string(HTML_TEMPLATE, users=users_data, domain=domain, port=HYSTERIA_PORT, obfs_pass=STATS_SECRET)
+    return render_template_string(HTML_TEMPLATE, users=users_data, domain=domain, port=HYSTERIA_PORT, obfs_pass=OBFS_PASS)
 
 @app.route("/add", methods=["POST"])
 def add_user():
@@ -244,8 +248,9 @@ if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000)
 EOF
 
-# Inject the real stats/obfs secret into app.py
+# Inject the real stats/obfs values into app.py
 sed -i "s/STATS_SECRET_PLACEHOLDER/$STATS_SECRET/g" /opt/hysteria-panel/app.py
+sed -i "s/OBFS_PASS_PLACEHOLDER/$OBFS_PASS/g" /opt/hysteria-panel/app.py
 ok "Panel app.py created."
 
 # -----------------------------------------------------------
@@ -356,6 +361,9 @@ ok "Hysteria config written."
 # -----------------------------------------------------------
 # 7. Port Hopping using nftables (modern firewall)
 # -----------------------------------------------------------
+# Ensure the nftables include directory exists (some distros lack it)
+mkdir -p /etc/nftables.d
+
 cat << 'EOF' > /etc/nftables.d/hysteria.nft
 table ip hysteria_nat {
     chain prerouting {
@@ -366,7 +374,12 @@ table ip hysteria_nat {
 EOF
 
 # Ensure nftables config includes the include path
-if ! grep -q "nftables.d" /etc/nftables.conf; then
+if [ -f /etc/nftables.conf ]; then
+    if ! grep -q "nftables.d" /etc/nftables.conf; then
+        echo 'include "/etc/nftables.d/*.nft";' >> /etc/nftables.conf
+    fi
+else
+    echo '#!/usr/sbin/nft -f' > /etc/nftables.conf
     echo 'include "/etc/nftables.d/*.nft";' >> /etc/nftables.conf
 fi
 
