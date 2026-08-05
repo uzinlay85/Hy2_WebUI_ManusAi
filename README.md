@@ -95,13 +95,35 @@ bash check_hysteria.sh          # run it
 
 ## 🚀 Quick Start (1-Click Setup)
 
+### ⚡ 1-Line Installation (Fastest Way)
+
+Just copy, paste, and press **Enter** on your fresh VPS — no need to download files manually. It will ask you for your domain name, then do everything automatically.
+
+```bash
+wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh
+```
+
+Or use `curl` if `wget` isn't available:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh)
+```
+
+### ⚡ 1-Line Commands for All Scripts
+
+| Task                  | One-Line Command                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **Install** (setup)   | `wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh`       |
+| **Check** (diagnose)  | `wget -O check.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh && bash check.sh`             |
+| **Uninstall** (clean) | `wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh && bash uninstall.sh` |
+
 ### Prerequisites
 
 - A Linux VPS (Ubuntu/Debian recommended)
 - A domain name pointed to your VPS IP (DNS A record)
 - Root / sudo access
 
-### Run the setup script
+### Manual download (alternative)
 
 ```bash
 # First, download the script to your VPS (see "Download the Scripts to Your VPS" above)
