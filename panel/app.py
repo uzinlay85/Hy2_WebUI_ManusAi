@@ -14,6 +14,10 @@ Run (development):
 
 In production, this is served via Nginx reverse proxy and
 managed by systemd (see config/hysteria-panel.service).
+
+NOTE: OBFS_PASS and STATS_SECRET are injected by install_hysteria.sh
+      via `sed` after this file is written to /opt/hysteria-panel/app.py.
+      The placeholders below are replaced with real values at install time.
 """
 
 from flask import Flask, request, jsonify, render_template_string, redirect, url_for, session
@@ -24,9 +28,11 @@ app.secret_key = os.urandom(24)
 DB_FILE = '/opt/hysteria-panel/users.db'
 HYSTERIA_PORT = '10443'
 # Anti-DPI obfuscation password (must match config.yaml obfs.salamander.password)
-OBFS_PASSWORD = 'YOUR_OBFS_PASSWORD'
+# Replaced by install_hysteria.sh: sed -i "s/OBFS_PASS_PLACEHOLDER/$OBFS_PASS/g"
+OBFS_PASS = 'OBFS_PASS_PLACEHOLDER'
 # Traffic stats secret (must match config.yaml trafficStats.secret)
-STATS_SECRET = 'YOUR_STATS_SECRET'
+# Replaced by install_hysteria.sh: sed -i "s/STATS_SECRET_PLACEHOLDER/$STATS_SECRET/g"
+STATS_SECRET = 'STATS_SECRET_PLACEHOLDER'
 
 
 def get_db():
@@ -220,7 +226,7 @@ HTML_TEMPLATE = """
                         {% endif %}
                     </td>
                     <td>
-                        <span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=1&sni={{ domain }}&obfs=salamander&obfs-password={{ obfs_pass }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
+                        <span class="code" id="url_{{ loop.index }}">hysteria2://{{ user['password'] }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&obfs=salamander&obfs-password={{ obfs_pass }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
                         <button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button>
                     </td>
                     <td>
@@ -310,7 +316,7 @@ def index():
         users=users_data,
         domain=domain,
         port=HYSTERIA_PORT,
-        obfs_pass=OBFS_PASSWORD,
+        obfs_pass=OBFS_PASS,       # FIX: was missing — obfs URL param now shows correctly
     )
 
 

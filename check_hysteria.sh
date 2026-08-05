@@ -2,12 +2,19 @@
 
 # =============================================================
 #  Hysteria 2 + Python Web Panel - 1-Click Auto Checker Script
-#  Version 2.0 - Comprehensive 8-point system check
+#  Version 2.1 - Comprehensive 8-point system check
+#  Fix: Traffic Stats API now reads secret from app.py for auth
 # =============================================================
 
 echo "====================================================="
-echo "🔍 Hysteria 2 အလိုအလျောက် စစ်ဆေးရေးစနစ် (v2.0)"
+echo "🔍 Hysteria 2 အလိုအလျောက် စစ်ဆေးရေးစနစ် (v2.1)"
 echo "====================================================="
+
+# Read the STATS_SECRET from the installed app.py (if available)
+STATS_SECRET=""
+if [ -f /opt/hysteria-panel/app.py ]; then
+    STATS_SECRET=$(grep "^STATS_SECRET" /opt/hysteria-panel/app.py | head -1 | sed "s/STATS_SECRET = '//;s/'//")
+fi
 
 # 1. Check Hysteria Service
 echo -n "၁။ Hysteria Server အခြေအနေ: "
@@ -58,12 +65,17 @@ else
     echo -e "\e[31m❌ FAILED\e[0m"
 fi
 
-# 7. Check Traffic Stats API
+# 7. Check Traffic Stats API (with secret)
 echo -n "၇။ Data Usage (Traffic Stats) API: "
-if curl -s --max-time 2 http://127.0.0.1:4000/traffic | grep -q "{"; then
+if [ -n "$STATS_SECRET" ]; then
+    STATS_URL="http://127.0.0.1:4000/traffic?secret=${STATS_SECRET}"
+else
+    STATS_URL="http://127.0.0.1:4000/traffic"
+fi
+if curl -s --max-time 2 "$STATS_URL" | grep -q "{"; then
     echo -e "\e[32m✅ RESPONDING\e[0m"
 else
-    echo -e "\e[31m❌ FAILED\e[0m"
+    echo -e "\e[31m❌ FAILED (secret မပါပါက /opt/hysteria-panel/app.py စစ်ဆေးပါ)\e[0m"
 fi
 
 # 8. Check SSL Certificates

@@ -3,6 +3,7 @@
 # =============================================================
 #  Hysteria 2 + Python Web Panel - 1-Click Clean Uninstall
 #  & Verify Script
+#  Fix v1.1: Nginx restart is now conditional (only if active)
 # =============================================================
 
 echo "🛑 ၁။ Service များကို ရပ်တန့်နေပါသည်..."
@@ -37,7 +38,15 @@ nft list table ip hysteria_nat > /dev/null 2>&1 && nft delete table ip hysteria_
 
 echo "🔄 ၇။ System ကို Refresh လုပ်နေပါသည်..."
 systemctl daemon-reload
-systemctl restart nginx
+
+# FIX: Only restart nginx if it is currently active to avoid errors
+# on servers where nginx may not be installed or already stopped.
+if systemctl is-active --quiet nginx; then
+    systemctl restart nginx
+    echo "✅ Nginx restarted."
+else
+    echo "⚠️  Nginx မပွင့်ဘဲ ရှိပါသောကြောင့် restart မလုပ်ပါ။"
+fi
 
 echo ""
 echo "====================================================="
