@@ -230,13 +230,14 @@ LOGIN_TEMPLATE = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Hysteria 2 Panel</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f3f4f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: #fff; padding: 35px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); text-align: center; width: 100%; max-width: 360px; }
-        h2 { margin-top: 0; color: #1e293b; font-size: 24px; }
-        input { width: 100%; padding: 12px 14px; margin: 15px 0 20px 0; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-        button { width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px; transition: background 0.2s; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
+        .login-box { background: #fff; padding: 35px 25px; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.06); text-align: center; width: 100%; max-width: 360px; box-sizing: border-box; }
+        h2 { margin-top: 0; color: #0f172a; font-size: 24px; font-weight: 700; }
+        input { width: 100%; padding: 12px 14px; margin: 15px 0 20px 0; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: #2563eb; ring: 2px #bfdbfe; }
+        button { width: 100%; padding: 14px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 16px; transition: background 0.2s; }
         button:hover { background: #1d4ed8; }
-        .error { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 14px; font-weight: 500; }
+        .error { color: #dc2626; background: #fef2f2; border: 1px solid #fecaca; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; font-weight: 500; }
     </style>
 </head>
 <body>
@@ -260,31 +261,56 @@ HTML_TEMPLATE = """
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hysteria 2 Manager</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f8fafc; padding: 20px; margin: 0; color: #334155; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .container { max-width: 1250px; margin: auto; background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        input, button { padding: 10px 14px; margin: 5px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; }
+        .container { max-width: 1250px; margin: auto; background: #fff; padding: 25px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+        input, button { padding: 10px 14px; margin: 5px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 14px; outline: none; }
+        input:focus { border-color: #2563eb; }
         button { background: #2563eb; color: white; border: none; cursor: pointer; font-weight: 600; transition: opacity 0.2s; }
         button:hover { opacity: 0.9; }
-        .btn-copy { background: #059669; padding: 6px 12px; font-size: 12px; margin-top: 5px; }
-        .btn-danger { background: #dc2626; }
-        .btn-logout { background: #64748b; text-decoration: none; padding: 8px 16px; color: white; border-radius: 6px; font-size: 14px; font-weight: 600; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-        th, td { padding: 12px 14px; border: 1px solid #e2e8f0; text-align: left; }
+        .btn-copy { background: #059669; padding: 8px 12px; font-size: 12px; margin-top: 5px; width: 100%; border-radius: 6px; }
+        .btn-danger { background: #dc2626; padding: 8px 12px; border-radius: 6px; }
+        .btn-logout { background: #64748b; text-decoration: none; padding: 10px 18px; color: white; border-radius: 8px; font-size: 14px; font-weight: 600; }
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; white-space: nowrap; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; text-align: left; }
         th { background: #f8fafc; color: #475569; font-weight: 600; }
-        .code { background: #0f172a; color: #34d399; padding: 8px 12px; display: block; word-break: break-all; font-family: monospace; border-radius: 6px; font-size: 13px; }
-        .settings-box { background: #fffbeb; padding: 20px; border-radius: 8px; border: 1px solid #fde68a; }
+        .code { background: #0f172a; color: #34d399; padding: 8px 12px; display: block; word-break: break-all; font-family: monospace; border-radius: 6px; font-size: 12px; white-space: normal; max-width: 280px; }
+        .settings-box { background: #fffbeb; padding: 20px; border-radius: 12px; border: 1px solid #fde68a; box-sizing: border-box; }
         .usage-badge { background: #e0e7ff; color: #3730a3; padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 12px; display: inline-block; margin-bottom: 2px; }
         .status-online { color: #15803d; font-weight: 600; background: #dcfce7; padding: 4px 10px; border-radius: 12px; font-size: 12px; display: inline-block; }
         .status-offline { color: #64748b; font-weight: 600; background: #f1f5f9; padding: 4px 10px; border-radius: 12px; font-size: 12px; display: inline-block; }
         .status-error { color: #b91c1c; font-weight: 600; background: #fee2e2; padding: 4px 10px; border-radius: 12px; font-size: 12px; display: inline-block; }
+
+        /* Responsive Mobile Layout Fixes */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 15px; border-radius: 12px; }
+            .header { flex-direction: column; align-items: stretch; gap: 12px; text-align: center; }
+            .header h2 { font-size: 20px; }
+            .btn-logout { width: 100%; box-sizing: border-box; text-align: center; }
+            
+            .add-form { flex-direction: column; align-items: stretch !important; padding: 15px !important; }
+            .add-form input, .add-form button, .add-form .input-group { width: 100% !important; margin: 4px 0 !important; box-sizing: border-box; }
+            .add-form button[type="submit"] { padding: 14px; font-size: 15px; margin-top: 8px !important; }
+            
+            .settings-grid { flex-direction: column !important; gap: 15px !important; margin-top: 20px !important; }
+            .settings-box { width: 100% !important; min-width: 100% !important; padding: 15px !important; }
+            .settings-box input, .settings-box button { width: 100% !important; margin: 4px 0 !important; box-sizing: border-box; }
+            .settings-box button { padding: 12px; }
+        }
     </style>
     <script>
         function copyToClipboard(id) {
-            navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => alert('✅ URL Copied!'));
+            const text = document.getElementById(id).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ Client URL Copied!');
+            }).catch(() => {
+                showToast('✅ Copied!');
+            });
         }
         function genPass() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -293,6 +319,19 @@ HTML_TEMPLATE = """
                 res += chars.charAt(Math.floor(Math.random() * chars.length));
             }
             document.getElementById('user_pass_input').value = res;
+            showToast('🎲 Random Password Generated');
+        }
+        function showToast(msg) {
+            let t = document.getElementById('toast');
+            if (!t) {
+                t = document.createElement('div');
+                t.id = 'toast';
+                t.style.cssText = 'position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#0f172a;color:#34d399;padding:12px 24px;border-radius:30px;font-weight:600;font-size:14px;box-shadow:0 10px 25px rgba(0,0,0,0.25);z-index:9999;transition:opacity 0.3s;opacity:0;pointer-events:none;';
+                document.body.appendChild(t);
+            }
+            t.innerText = msg;
+            t.style.opacity = '1';
+            setTimeout(() => { t.style.opacity = '0'; }, 2000);
         }
     </script>
 </head>
@@ -303,10 +342,10 @@ HTML_TEMPLATE = """
             <a href="/logout" class="btn-logout">🚪 Logout</a>
         </div>
 
-        <form method="POST" action="/add" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
+        <form method="POST" action="/add" class="add-form" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #f8fafc; padding: 18px; border-radius: 12px; border: 1px solid #e2e8f0;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="user_name" placeholder="📝 Name" required style="flex: 1; min-width: 120px;">
-            <div style="display: flex; flex: 1.2; min-width: 180px; gap: 4px;">
+            <div class="input-group" style="display: flex; flex: 1.2; min-width: 180px; gap: 4px;">
                 <input type="text" name="user_pass" id="user_pass_input" placeholder="👤 Password (Blank = Auto)" style="flex: 1; margin: 0;">
                 <button type="button" onclick="genPass()" style="background: #64748b; margin: 0; padding: 10px 12px;" title="Generate Random Password">🎲 Auto</button>
             </div>
@@ -315,7 +354,7 @@ HTML_TEMPLATE = """
             <button type="submit">➕ Add User</button>
         </form>
 
-        <div style="overflow-x: auto;">
+        <div class="table-wrapper">
             <table>
                 <tr>
                     <th>Name</th>
@@ -373,7 +412,7 @@ HTML_TEMPLATE = """
             </table>
         </div>
 
-        <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 30px;">
+        <div class="settings-grid" style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 30px;">
             <div class="settings-box" style="flex: 1; min-width: 300px; margin-top: 0;">
                 <h3 style="margin-top: 0; color: #92400e;">⚙️ Change Admin Password</h3>
                 <form method="POST" action="/change_pass" style="display: flex; flex-wrap: wrap; gap: 10px;">
