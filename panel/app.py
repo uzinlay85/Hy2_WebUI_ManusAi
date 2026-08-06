@@ -286,6 +286,14 @@ HTML_TEMPLATE = """
         function copyToClipboard(id) {
             navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => alert('✅ URL Copied!'));
         }
+        function genPass() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let res = '';
+            for (let i = 0; i < 16; i++) {
+                res += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('user_pass_input').value = res;
+        }
     </script>
 </head>
 <body>
@@ -298,7 +306,10 @@ HTML_TEMPLATE = """
         <form method="POST" action="/add" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; background: #f8fafc; padding: 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="text" name="user_name" placeholder="📝 Name" required style="flex: 1; min-width: 120px;">
-            <input type="text" name="user_pass" placeholder="👤 Password" required style="flex: 1; min-width: 120px;">
+            <div style="display: flex; flex: 1.2; min-width: 180px; gap: 4px;">
+                <input type="text" name="user_pass" id="user_pass_input" placeholder="👤 Password (Blank = Auto)" style="flex: 1; margin: 0;">
+                <button type="button" onclick="genPass()" style="background: #64748b; margin: 0; padding: 10px 12px;" title="Generate Random Password">🎲 Auto</button>
+            </div>
             <input type="number" step="0.1" name="limit_gb" placeholder="Data Limit (GB) [0=Unl]" required style="flex: 1; min-width: 130px;" value="0">
             <input type="number" name="days" placeholder="Days [0=Unl]" required style="flex: 1; min-width: 100px;" value="0">
             <button type="submit">➕ Add User</button>
@@ -502,8 +513,12 @@ def add_user():
     if not session.get('logged_in'):
         return redirect(url_for("login"))
 
-    user_name = request.form.get("user_name", "Unknown")
-    user_pass = request.form.get("user_pass")
+    user_name = request.form.get("user_name", "Unknown").strip()
+    user_pass = request.form.get("user_pass", "").strip()
+    if not user_pass:
+        chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+        user_pass = ''.join(secrets.choice(chars) for _ in range(16))
+
     try: limit_gb = float(request.form.get("limit_gb", 0))
     except Exception: limit_gb = 0
     try: days = int(request.form.get("days", 0))
@@ -513,17 +528,16 @@ def add_user():
     if days > 0:
         expiry_date = (datetime.datetime.now() + datetime.timedelta(days=days)).strftime('%Y-%m-%d')
 
-    if user_pass:
-        conn = get_db()
-        try:
-            conn.execute(
-                "INSERT INTO users (password, name, limit_gb, expiry_date, last_seen) VALUES (?, ?, ?, ?, NULL)",
-                (user_pass, user_name, limit_gb, expiry_date),
-            )
-            conn.commit()
-        except Exception:
-            pass
-        conn.close()
+    conn = get_db()
+    try:
+        conn.execute(
+            "INSERT INTO users (password, name, limit_gb, expiry_date, last_seen) VALUES (?, ?, ?, ?, NULL)",
+            (user_pass, user_name, limit_gb, expiry_date),
+        )
+        conn.commit()
+    except Exception:
+        pass
+    conn.close()
     return redirect(url_for("index"))
 
 
