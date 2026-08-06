@@ -35,7 +35,17 @@ fi
 
 ok "🌐 အလိုအလျောက် တွေ့ရှိသော Domain: $DOMAIN"
 
-# 2. Extract existing TrafficStats secret from config.yaml
+# 2. Detect existing port automatically (default 10443)
+PORT="10443"
+if [ -f /etc/hysteria/config.yaml ]; then
+    DETECTED_PORT=$(grep "listen:" /etc/hysteria/config.yaml | head -n 1 | awk -F':' '{print $NF}' | tr -d ' ')
+    if [ -n "$DETECTED_PORT" ]; then
+        PORT="$DETECTED_PORT"
+    fi
+fi
+ok "🔌 အလိုအလျောက် တွေ့ရှိသော Port: $PORT"
+
+# 3. Extract existing TrafficStats secret from config.yaml
 STATS_SECRET=""
 if [ -f /etc/hysteria/config.yaml ]; then
     STATS_SECRET=$(grep "secret:" /etc/hysteria/config.yaml | tail -1 | awk '{print $2}')
@@ -55,7 +65,7 @@ sysctl -p >/dev/null 2>&1 || true
 
 info "3. Hysteria 2 Config (16MB/32MB High-Speed Setting) အဆင့်မြှင့်နေပါသည်..."
 cat << EOF > /etc/hysteria/config.yaml
-listen: :10443
+listen: :$PORT
 
 tls:
   cert: /etc/letsencrypt/live/$DOMAIN/fullchain.pem
@@ -97,7 +107,21 @@ trafficStats:
   secret: $STATS_SECRET
 EOF
 
-info "4. Service များကို Restart ပြုလုပ်နေပါသည်..."
+info "4. Firewall နှင့် Port Hopping Rules များကို Update ပြုလုပ်နေပါသည်..."
+mkdir -p /etc/nftables.d
+cat << EOF > /etc/nftables.d/hysteria.nft
+table ip hysteria_nat {
+    chain prerouting {
+        type nat hook prerouting priority -100; policy accept;
+        udp dport 20000-50000 redirect to :$PORT
+    }
+}
+EOF
+nft -f /etc/nftables.d/hysteria.nft 2>/dev/null || true
+ufw allow $PORT/udp 2>/dev/null || true
+ufw allow 20000:50000/udp 2>/dev/null || true
+
+info "5. Service များကို Restart ပြုလုပ်နေပါသည်..."
 systemctl restart hysteria-server hysteria-panel nginx
 
 echo "====================================================="

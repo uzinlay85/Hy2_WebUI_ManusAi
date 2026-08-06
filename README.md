@@ -49,8 +49,8 @@ VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင
 ```bash
 wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh
 ```
-၂။ မေးခွန်းတွင် သင့် Domain Name (ဥပမာ - `hy2.yourdomain.com`) ကို ရိုက်ထည့်ပါ။  
-၃။ တပ်ဆင်ခြင်း ပြီးစီးပါက **Web UI Link**၊ **Admin Password** နှင့် **OBFS Password** များကို ပြသပေးပါလိမ့်မည်။
+၂။ မေးခွန်းတွင် သင့် Domain Name (ဥပမာ - `hy2.yourdomain.com`) နှင့် Hysteria 2 Main Port (မရိုက်ဘဲ Enter နှိပ်ပါက Default `10443`) တို့ကို စိတ်ကြိုက် ရိုက်ထည့်ပေးပါ။  
+၃။ တပ်ဆင်ခြင်း ပြီးစီးပါက **Web UI Link**၊ **Admin Password** များကို ပြသပေးပါလိမ့်မည်။
 
 ---
 

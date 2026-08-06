@@ -33,6 +33,8 @@ if [ -z "$DOMAIN" ]; then
     err "Domain Name ထည့်သွင်းခြင်း မရှိပါသဖြင့် ရပ်တန့်လိုက်ပါသည်။"
     exit 1
 fi
+read -p "🔌 Hysteria 2 Port သတ်မှတ်ပါ (Default [10443]): " PORT_INPUT
+HY2_PORT=${PORT_INPUT:-10443}
 
 # Generate a random obfs password automatically
 # NOTE: tr -d '+/=' removes all base64 special chars to keep sed-safe alphanumeric only
@@ -372,7 +374,7 @@ sysctl -p
 bash <(curl -fsSL https://get.hy2.sh/)
 
 cat << EOF > /etc/hysteria/config.yaml
-listen: :10443
+listen: :$HY2_PORT
 
 tls:
   cert: /etc/letsencrypt/live/$DOMAIN/fullchain.pem
@@ -430,7 +432,7 @@ cat << 'EOF' > /etc/nftables.d/hysteria.nft
 table ip hysteria_nat {
     chain prerouting {
         type nat hook prerouting priority -100; policy accept;
-        udp dport 20000-50000 redirect to :10443
+        udp dport 20000-50000 redirect to :$HY2_PORT
     }
 }
 EOF
@@ -457,7 +459,7 @@ ok "nftables port hopping configured."
 # -----------------------------------------------------------
 ufw allow 80/tcp
 ufw allow 443/tcp
-ufw allow 10443/udp
+ufw allow $HY2_PORT/udp
 ufw allow 20000:50000/udp
 # Remove old buggy UFW NAT rule if present
 sed -i '/20000:50000/d' /etc/ufw/before.rules

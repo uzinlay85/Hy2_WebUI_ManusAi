@@ -22,7 +22,22 @@ import sqlite3, urllib.parse, urllib.request, json, os, datetime
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 DB_FILE = '/opt/hysteria-panel/users.db'
-HYSTERIA_PORT = '10443'
+
+def get_hysteria_port():
+    try:
+        if os.path.exists("/etc/hysteria/config.yaml"):
+            with open("/etc/hysteria/config.yaml", "r") as f:
+                for line in f:
+                    if line.strip().startswith("listen:"):
+                        val = line.split("listen:")[1].strip()
+                        port = val.split(":")[-1].strip()
+                        if port.isdigit():
+                            return port
+    except Exception:
+        pass
+    return '10443'
+
+HYSTERIA_PORT = get_hysteria_port()
 # Anti-DPI obfuscation password (must match config.yaml obfs.salamander.password)
 OBFS_PASS = 'OBFS_PASS_PLACEHOLDER'
 # Traffic stats secret (must match config.yaml trafficStats.secret)
@@ -281,7 +296,7 @@ HTML_TEMPLATE = """
                         <small style="color: #6b7280;">{{ user['last_seen'] or 'Never' }}</small>
                     </td>
                     <td>
-                        <span class="code" id="url_{{ loop.index }}">hy2://{{ user['password'] | urlencode_pass }}@{{ domain }}:10443/?insecure=0&sni={{ domain }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
+                        <span class="code" id="url_{{ loop.index }}">hy2://{{ user['password'] | urlencode_pass }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
                         <button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button>
                     </td>
                     <td>

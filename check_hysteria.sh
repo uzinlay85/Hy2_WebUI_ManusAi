@@ -57,9 +57,17 @@ else
     echo -e "\e[31m❌ FAILED\e[0m"
 fi
 
-# 4. Check UDP Port 10443
-echo -n "၄။ Port 10443 (UDP) ပွင့်/မပွင့်: "
-if ss -ulnp | grep -q "10443"; then
+PORT="10443"
+if [ -f "$CONFIG_YAML" ]; then
+    DETECTED_PORT=$(grep "listen:" "$CONFIG_YAML" | head -n 1 | awk -F':' '{print $NF}' | tr -d ' ')
+    if [ -n "$DETECTED_PORT" ]; then
+        PORT="$DETECTED_PORT"
+    fi
+fi
+
+# 4. Check UDP Port
+echo -n "၄။ Port $PORT (UDP) ပွင့်/မပွင့်: "
+if ss -ulnp | grep -q ":$PORT "; then
     echo -e "\e[32m✅ LISTENING\e[0m"
 else
     echo -e "\e[31m❌ NOT LISTENING\e[0m"
