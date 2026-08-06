@@ -54,7 +54,9 @@ if [ -z "$STATS_SECRET" ]; then
     STATS_SECRET=$(head -c 16 /dev/urandom | base64 | tr -d '+/=')
 fi
 
-info "1. Python Panel App Code အသစ် ရယူနေပါသည်..."
+info "1. Python Panel App Code အသစ်နှင့် Dependencies များ ရယူနေပါသည်..."
+source /opt/hysteria-panel/venv/bin/activate 2>/dev/null || true
+pip install --no-cache-dir Flask Werkzeug >/dev/null 2>&1 || true
 wget -q -O /opt/hysteria-panel/app.py https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/panel/app.py
 sed -i "s|STATS_SECRET_PLACEHOLDER|$STATS_SECRET|g" /opt/hysteria-panel/app.py
 
