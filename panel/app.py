@@ -20,8 +20,26 @@ from flask import Flask, request, jsonify, render_template_string, redirect, url
 import sqlite3, urllib.parse, urllib.request, json, os, datetime
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
 DB_FILE = '/opt/hysteria-panel/users.db'
+
+def get_flask_secret():
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        conn.row_factory = sqlite3.Row
+        conn.execute("CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT)")
+        row = conn.execute("SELECT value FROM settings WHERE key = 'flask_secret'").fetchone()
+        if not row:
+            sec = os.urandom(24).hex()
+            conn.execute("INSERT INTO settings (key, value) VALUES ('flask_secret', ?)", (sec,))
+            conn.commit()
+            conn.close()
+            return sec
+        conn.close()
+        return row['value']
+    except Exception:
+        return os.urandom(24)
+
+app.secret_key = get_flask_secret()
 
 def get_hysteria_port():
     try:

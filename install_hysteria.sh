@@ -353,7 +353,8 @@ ok "Panel app.py created."
 cat << EOF > /etc/systemd/system/hysteria-panel.service
 [Unit]
 Description=Hysteria 2 Python Panel
-After=network.target
+After=network.target network-online.target
+Wants=network-online.target
 
 [Service]
 User=root
@@ -392,6 +393,7 @@ rm -f /var/lib/letsencrypt/*.lock /var/log/letsencrypt/*.lock /run/lock/certbot.
 certbot --nginx -d $DOMAIN --non-interactive --agree-tos --register-unsafely-without-email
 chmod -R 755 /etc/letsencrypt/archive
 chmod -R 755 /etc/letsencrypt/live
+chown -R root:hysteria /etc/letsencrypt/live/ /etc/letsencrypt/archive/ 2>/dev/null || true
 ok "Nginx + SSL configured."
 
 # -----------------------------------------------------------
@@ -458,7 +460,7 @@ ok "Hysteria config written."
 # Ensure the nftables include directory exists (some distros lack it)
 mkdir -p /etc/nftables.d
 
-cat << 'EOF' > /etc/nftables.d/hysteria.nft
+cat << EOF > /etc/nftables.d/hysteria.nft
 table ip hysteria_nat {
     chain prerouting {
         type nat hook prerouting priority -100; policy accept;
@@ -509,10 +511,9 @@ echo -e "${GREEN}🎉 တပ်ဆင်ခြင်း အောင်မြင
 echo "🌐 Web UI: https://$DOMAIN"
 echo "🔑 Default Admin Password: admin123"
 echo ""
-echo -e "${YELLOW}⚙️  Obfuscation Password (clients need this):${NC} $OBFS_PASS"
+echo -e "${YELLOW}🔌 Hysteria 2 Port:${NC} $HY2_PORT (Hopping: 20000-50000)"
 echo -e "${YELLOW}🔐 Traffic Stats Secret:${NC} $STATS_SECRET"
 echo "============================================================="
 echo ""
-echo "⚠️  ဤ OBFS Password ကို Client URL များတွင် အလိုအလျောက် ထည့်ပေးထားပြီးဖြစ်ပါသည်။"
-echo "     Panel မှ ထုတ်ပေးသော hysteria2:// URL များကို တိုက်ရိုက် အသုံးပြုနိုင်ပါသည်။"
+echo "⚠️  Panel မှ ထုတ်ပေးသော hy2:// URL များကို တိုက်ရိုက် အသုံးပြုနိုင်ပါသည်။"
 echo "============================================================="

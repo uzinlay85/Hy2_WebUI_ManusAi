@@ -121,7 +121,9 @@ nft -f /etc/nftables.d/hysteria.nft 2>/dev/null || true
 ufw allow $PORT/udp 2>/dev/null || true
 ufw allow 20000:50000/udp 2>/dev/null || true
 
-info "5. Service များကို Restart ပြုလုပ်နေပါသည်..."
+info "5. Certificate Permissions နှင့် Service များကို Restart ပြုလုပ်နေပါသည်..."
+chmod -R 755 /etc/letsencrypt/archive /etc/letsencrypt/live 2>/dev/null || true
+chown -R root:hysteria /etc/letsencrypt/live/ /etc/letsencrypt/archive/ 2>/dev/null || true
 systemctl restart hysteria-server hysteria-panel nginx
 
 echo "====================================================="
