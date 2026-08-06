@@ -86,6 +86,13 @@ def get_admin_pass():
     return row['value'] if row else 'admin123'
 
 
+def get_server_tag():
+    conn = get_db()
+    row = conn.execute("SELECT value FROM settings WHERE key = 'server_tag'").fetchone()
+    conn.close()
+    return row['value'] if row else ''
+
+
 def get_traffic_stats():
     try:
         req = urllib.request.Request(
@@ -296,7 +303,7 @@ HTML_TEMPLATE = """
                         <small style="color: #6b7280;">{{ user['last_seen'] or 'Never' }}</small>
                     </td>
                     <td>
-                        <span class="code" id="url_{{ loop.index }}">hy2://{{ user['password'] | urlencode_pass }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
+                        <span class="code" id="url_{{ loop.index }}">hy2://{{ user['password'] | urlencode_pass }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&mport=20000-50000#{{ (user['name'] + server_tag) | urlencode }}</span>
                         <button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button>
                     </td>
                     <td>
@@ -310,13 +317,23 @@ HTML_TEMPLATE = """
             </table>
         </div>
 
-        <div class="settings-box">
-            <h3 style="margin-top: 0; color: #92400e;">⚙️ Change Admin Password</h3>
-            <form method="POST" action="/change_pass" style="display: flex; flex-wrap: wrap; gap: 10px;">
-                <input type="password" name="current_pass" placeholder="Current Password" required>
-                <input type="password" name="new_pass" placeholder="New Password" required>
-                <button type="submit" style="background: #d97706;">🔄 Update</button>
-            </form>
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 30px;">
+            <div class="settings-box" style="flex: 1; min-width: 300px; margin-top: 0;">
+                <h3 style="margin-top: 0; color: #92400e;">⚙️ Change Admin Password</h3>
+                <form method="POST" action="/change_pass" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <input type="password" name="current_pass" placeholder="Current Password" required>
+                    <input type="password" name="new_pass" placeholder="New Password" required>
+                    <button type="submit" style="background: #d97706;">🔄 Update Password</button>
+                </form>
+            </div>
+            <div class="settings-box" style="flex: 1; min-width: 300px; margin-top: 0; background: #eff6ff; border-color: #bfdbfe;">
+                <h3 style="margin-top: 0; color: #1e40af;">🏷️ Server Profile Tag Suffix</h3>
+                <form method="POST" action="/update_tag" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <input type="text" name="server_tag" value="{{ server_tag }}" placeholder="e.g. _Server01 or _SG" style="flex: 1; min-width: 150px;">
+                    <button type="submit" style="background: #2563eb;">💾 Save Tag</button>
+                </form>
+                <small style="color: #4b5563; display: block; margin-top: 8px;">Appended to the end of every Client Key name (e.g. <b>#User{{ server_tag or '_Server01' }}</b>)</small>
+            </div>
         </div>
     </div>
 </body>
@@ -420,8 +437,20 @@ def index():
         users=users_data,
         domain=domain,
         port=HYSTERIA_PORT,
-        obfs_pass=OBFS_PASS,
+        server_tag=get_server_tag(),
     )
+
+
+@app.route("/update_tag", methods=["POST"])
+def update_tag():
+    if not session.get('logged_in'):
+        return redirect(url_for("login"))
+    tag = request.form.get("server_tag", "").strip()
+    conn = get_db()
+    conn.execute("INSERT OR REPLACE INTO settings (key, value) VALUES ('server_tag', ?)", (tag,))
+    conn.commit()
+    conn.close()
+    return redirect(url_for("index"))
 
 
 @app.route("/add", methods=["POST"])
