@@ -313,13 +313,15 @@ HTML_TEMPLATE = """
             });
         }
         function genPass() {
+            const nameInput = document.querySelector('input[name="user_name"]').value.trim() || 'User';
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
             let res = '';
             for (let i = 0; i < 16; i++) {
                 res += chars.charAt(Math.floor(Math.random() * chars.length));
             }
-            document.getElementById('user_pass_input').value = res;
-            showToast('🎲 Random Password Generated');
+            const fullPass = nameInput + '_' + res;
+            document.getElementById('user_pass_input').value = fullPass;
+            showToast('🎲 Password Generated: ' + fullPass);
         }
         function showToast(msg) {
             let t = document.getElementById('toast');
@@ -556,7 +558,8 @@ def add_user():
     user_pass = request.form.get("user_pass", "").strip()
     if not user_pass:
         chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-        user_pass = ''.join(secrets.choice(chars) for _ in range(16))
+        gen_rand = ''.join(secrets.choice(chars) for _ in range(16))
+        user_pass = f"{user_name}_{gen_rand}"
 
     try: limit_gb = float(request.form.get("limit_gb", 0))
     except Exception: limit_gb = 0
