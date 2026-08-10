@@ -15,8 +15,8 @@ quic:
   maxStreamReceiveWindow: 16777216
   initConnReceiveWindow: 33554432
   maxConnReceiveWindow: 33554432
-  maxIdleTimeout: 30s
-  keepAlivePeriod: 10s
+  maxIdleTimeout: 60s
+  keepAlivePeriod: 5s
 
 # Obfuscation (disabled by default for maximum app compatibility & light connections)
 # To re-enable Salamander obfs, see docs/obfs-salamander-guide.md

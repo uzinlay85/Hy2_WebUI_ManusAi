@@ -79,8 +79,8 @@ quic:
   maxStreamReceiveWindow: 16777216
   initConnReceiveWindow: 33554432
   maxConnReceiveWindow: 33554432
-  maxIdleTimeout: 30s
-  keepAlivePeriod: 10s
+  maxIdleTimeout: 60s
+  keepAlivePeriod: 5s
 
 masquerade:
   type: proxy
