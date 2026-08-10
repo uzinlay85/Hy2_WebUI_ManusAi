@@ -50,7 +50,7 @@ OBFS_PASS = 'YOUR_OBFS_PASSWORD'
 
 Client URL Template:
 ```html
-<span class="code" id="url_{{ loop.index }}">hy2://{{ user['password'] | urlencode_pass }}@{{ domain }}:10443/?insecure=0&sni={{ domain }}&obfs=salamander&obfs-password={{ obfs_pass }}&mport=20000-50000#{{ user['name'] | urlencode }}</span>
+<span class="code" id="url_{{ loop.index }}">hy2://{{ user['password'] | urlencode_pass }}@{{ domain }}:10443/?insecure=0&sni={{ domain }}&obfs=salamander&obfs-password={{ obfs_pass }}#{{ user['name'] | urlencode }}</span>
 ```
 
 ### ၃။ Hysteria Server နှင့် Panel ကို Restart ပြုလုပ်ခြင်း
@@ -65,5 +65,5 @@ systemctl restart hysteria-server hysteria-panel
 
 | အမျိုးအစား | Client Key Format |
 | :--- | :--- |
-| **Standard Mode (ယခုစနစ်)** | `hy2://PASSWORD@DOMAIN:10443/?insecure=0&sni=DOMAIN&mport=20000-50000#NAME` |
-| **Obfs Mode (Salamander)** | `hy2://PASSWORD@DOMAIN:10443/?insecure=0&sni=DOMAIN&obfs=salamander&obfs-password=OBFS_PASS&mport=20000-50000#NAME` |
+| **Standard Mode (ယခုစနစ်)** | `hy2://PASSWORD@DOMAIN:10443/?insecure=0&sni=DOMAIN#NAME` |
+| **Obfs Mode (Salamander)** | `hy2://PASSWORD@DOMAIN:10443/?insecure=0&sni=DOMAIN&obfs=salamander&obfs-password=OBFS_PASS#NAME` |

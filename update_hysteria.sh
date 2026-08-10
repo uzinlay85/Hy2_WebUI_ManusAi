@@ -109,19 +109,13 @@ trafficStats:
   secret: $STATS_SECRET
 EOF
 
-info "4. Firewall နှင့် Port Hopping Rules များကို Update ပြုလုပ်နေပါသည်..."
-mkdir -p /etc/nftables.d
-cat << EOF > /etc/nftables.d/hysteria.nft
-table ip hysteria_nat {
-    chain prerouting {
-        type nat hook prerouting priority -100; policy accept;
-        udp dport 20000-50000 redirect to :$PORT
-    }
-}
-EOF
-nft -f /etc/nftables.d/hysteria.nft 2>/dev/null || true
+info "4. Single Port Firewall Rules များကို Update ပြုလုပ်နေပါသည်..."
+nft delete table ip hysteria_nat 2>/dev/null || true
+rm -f /etc/nftables.d/hysteria.nft 2>/dev/null || true
 ufw allow $PORT/udp 2>/dev/null || true
-ufw allow 20000:50000/udp 2>/dev/null || true
+ufw delete allow 20000:50000/udp 2>/dev/null || true
+sed -i '/20000:50000/d' /etc/ufw/before.rules 2>/dev/null || true
+ufw reload 2>/dev/null || true
 
 info "5. Certificate Permissions နှင့် Service များကို Restart ပြုလုပ်နေပါသည်..."
 chmod -R 755 /etc/letsencrypt/archive /etc/letsencrypt/live 2>/dev/null || true

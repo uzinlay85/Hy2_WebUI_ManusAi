@@ -397,7 +397,7 @@ HTML_TEMPLATE = """
                         <small style="color: #64748b;">{{ user['last_seen'] or 'Never' }}</small>
                     </td>
                     <td>
-                        <span class="code" id="url_{{ loop.index }}">hy2://{{ user['password'] | urlencode_pass }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}&mport=20000-50000#{{ (user['name'] + server_tag) | urlencode }}</span>
+                        <span class="code" id="url_{{ loop.index }}">hy2://{{ user['password'] | urlencode_pass }}@{{ domain }}:{{ port }}/?insecure=0&sni={{ domain }}#{{ (user['name'] + server_tag) | urlencode }}</span>
                         <button class="btn-copy" onclick="copyToClipboard('url_{{ loop.index }}')">📋 Copy URL</button>
                     </td>
                     <td>

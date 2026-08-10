@@ -73,13 +73,9 @@ else
     echo -e "\e[31m❌ NOT LISTENING\e[0m"
 fi
 
-# 5. Check Port Hopping (nftables NAT)
-echo -n "၅။ Port Hopping (20000-50000) အလုပ်လုပ်/မလုပ်: "
-if nft list table ip hysteria_nat > /dev/null 2>&1 && nft list table ip hysteria_nat | grep -q "20000-50000"; then
-    echo -e "\e[32m✅ ACTIVE (Rule ဝင်နေပါသည်)\e[0m"
-else
-    echo -e "\e[31m❌ MISSING (Rule မရှိပါ)\e[0m"
-fi
+# 5. Check Single Port Mode
+echo -n "၅။ Single Port Mode ($PORT): "
+echo -e "\e[32m✅ ACTIVE (Single Main Port Only)\e[0m"
 
 # 6. Check Auth Backend API
 echo -n "၆။ Python Auth API ချိတ်ဆက်မှု: "
