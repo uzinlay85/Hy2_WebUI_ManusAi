@@ -392,7 +392,7 @@ def urlencode_pass_filter(s):
     return urllib.parse.quote(str(s), safe='')
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000)
+    app.run(host="127.0.0.1", port=8888)
 EOF
 
 # Inject the real stats/obfs values into app.py
@@ -404,7 +404,7 @@ ok "Panel app.py created."
 # -----------------------------------------------------------
 # 4. Systemd for Python Panel
 # -----------------------------------------------------------
-cat << EOF > /etc/systemd/system/hysteria-panel.service
+cat << EOF > /etc/systemd/system/hy2-panel.service
 [Unit]
 Description=Hysteria 2 Python Panel
 After=network.target network-online.target
@@ -420,7 +420,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 systemctl daemon-reload
-systemctl enable --now hysteria-panel
+systemctl enable --now hy2-panel
 ok "Panel service started."
 
 # -----------------------------------------------------------
@@ -431,7 +431,7 @@ server {
     listen 80;
     server_name $DOMAIN;
     location / {
-        proxy_pass http://127.0.0.1:5000;
+        proxy_pass http://127.0.0.1:8888;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
     }
