@@ -91,7 +91,7 @@ masquerade:
 auth:
   type: http
   http:
-    url: http://127.0.0.1:5000/auth
+    url: http://127.0.0.1:8888/auth
 
 acl:
   inline:
@@ -120,7 +120,7 @@ ufw reload 2>/dev/null || true
 info "5. Certificate Permissions နှင့် Service များကို Restart ပြုလုပ်နေပါသည်..."
 chmod -R 755 /etc/letsencrypt/archive /etc/letsencrypt/live 2>/dev/null || true
 chown -R root:hysteria /etc/letsencrypt/live/ /etc/letsencrypt/archive/ 2>/dev/null || true
-systemctl restart hysteria-server hysteria-panel nginx
+systemctl restart hysteria-server hy2-panel nginx
 
 echo "====================================================="
 ok "🎉 Update ပြုလုပ်ခြင်း ၁၀၀% အောင်မြင်စွာ ပြီးစီးပါပြီ!"

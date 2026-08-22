@@ -488,7 +488,7 @@ masquerade:
 auth:
   type: http
   http:
-    url: http://127.0.0.1:5000/auth
+    url: http://127.0.0.1:8888/auth
 
 # Block private ranges (IPv4 + IPv6) to prevent abuse
 acl:
