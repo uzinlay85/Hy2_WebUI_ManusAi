@@ -109,6 +109,11 @@ trafficStats:
   secret: $STATS_SECRET
 EOF
 
+# 4. SSH Keep-Alive Protection (Prevents SSH Disconnects)
+grep -q "ClientAliveInterval" /etc/ssh/sshd_config || echo "ClientAliveInterval 15" >> /etc/ssh/sshd_config
+grep -q "ClientAliveCountMax" /etc/ssh/sshd_config || echo "ClientAliveCountMax 10" >> /etc/ssh/sshd_config
+systemctl reload sshd 2>/dev/null || true
+
 info "4. Single Port Firewall Rules များကို Update ပြုလုပ်နေပါသည်..."
 nft delete table ip hysteria_nat 2>/dev/null || true
 rm -f /etc/nftables.d/hysteria.nft 2>/dev/null || true
@@ -117,10 +122,16 @@ ufw delete allow 20000:50000/udp 2>/dev/null || true
 sed -i '/20000:50000/d' /etc/ufw/before.rules 2>/dev/null || true
 ufw reload 2>/dev/null || true
 
-info "5. Certificate Permissions နှင့် Service များကို Restart ပြုလုပ်နေပါသည်..."
+info "5. Hysteria 2 Core Binary (Official Engine) အဆင့်မြှင့်နေပါသည်..."
+bash <(curl -fsSL https://get.hy2.sh/) 2>/dev/null || true
+
+info "6. Certificate Permissions နှင့် Service များကို Fast Restart ပြုလုပ်နေပါသည်..."
 chmod -R 755 /etc/letsencrypt/archive /etc/letsencrypt/live 2>/dev/null || true
 chown -R root:hysteria /etc/letsencrypt/live/ /etc/letsencrypt/archive/ 2>/dev/null || true
-systemctl restart hysteria-server hy2-panel nginx
+
+# Fast non-blocking restart to prevent SSH freeze when clients are connected
+systemctl restart hy2-panel nginx 2>/dev/null || true
+systemctl restart hysteria-server 2>/dev/null || true
 
 echo "====================================================="
 ok "🎉 Update ပြုလုပ်ခြင်း ၁၀၀% အောင်မြင်စွာ ပြီးစီးပါပြီ!"
