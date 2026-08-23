@@ -43,7 +43,7 @@ fi
 
 # 2. Check Python Panel Service
 echo -n "၂။ Python Web Panel အခြေအနေ: "
-if systemctl is-active --quiet hysteria-panel; then
+if systemctl is-active --quiet hy2-panel || systemctl is-active --quiet hysteria-panel; then
     echo -e "\e[32m✅ RUNNING\e[0m"
 else
     echo -e "\e[31m❌ FAILED\e[0m"
@@ -79,7 +79,7 @@ echo -e "\e[32m✅ ACTIVE (Single Main Port Only)\e[0m"
 
 # 6. Check Auth Backend API
 echo -n "၆။ Python Auth API ချိတ်ဆက်မှု: "
-AUTH_RES=$(curl -s -X POST http://127.0.0.1:5000/auth -H "Content-Type: application/json" -d "{\"auth\": \"test_check\"}")
+AUTH_RES=$(curl -s -X POST http://127.0.0.1:8888/auth -H "Content-Type: application/json" -d "{\"auth\": \"test_check\"}" 2>/dev/null || curl -s -X POST http://127.0.0.1:5000/auth -H "Content-Type: application/json" -d "{\"auth\": \"test_check\"}")
 if echo "$AUTH_RES" | grep -q "ok"; then
     echo -e "\e[32m✅ RESPONDING\e[0m"
 else
