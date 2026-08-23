@@ -37,6 +37,19 @@ VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင
 
 ---
 
+## 📚 Documentation & Guides
+
+| ဖိုင် | အကြောင်းအရာ |
+|:---|:---|
+| 📖 [README.md](README.md) | Main Installation & Usage Guide (ဤဖိုင်) |
+| 🔍 [AUDIT.md](AUDIT.md) | **Full Server Health Audit v2.1** — တပ်ဆင်နည်း၊ Output ဖတ်နည်း၊ ဖြေရှင်းနည်း |
+| 🛡️ [WATCHDOG.md](WATCHDOG.md) | **Watchdog Monitoring System** — Auto Restart, Downtime Log, Cron Setup |
+
+> 💡 **Server စစ်ဆေးလိုပါက** → [AUDIT.md](AUDIT.md) ကို ဖတ်ပါ  
+> 💡 **Auto Monitoring ထည့်လိုပါက** → [WATCHDOG.md](WATCHDOG.md) ကို ဖတ်ပါ
+
+---
+
 ## 🚀 စတင်တပ်ဆင်နည်း (Installation)
 
 ### လိုအပ်ချက်များ (Prerequisites)
@@ -206,16 +219,19 @@ wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_Manus
 
 ```
 Hy2_WebUI_ManusAi/
-├── README.md                     ← ဤ Documentation ဖိုင်
-├── install_hysteria.sh           ← 1-Click Auto Setup Script (v4.0)
+├── README.md                     ← Main Documentation (ဤဖိုင်)
+├── AUDIT.md                      ← Full Server Health Audit v2.1 Guide
+├── WATCHDOG.md                   ← Watchdog Monitoring System Guide
+├── install_hysteria.sh           ← 1-Click Auto Setup Script (v4.1)
+├── update_hysteria.sh            ← 1-Click Update Script
 ├── uninstall_hysteria.sh         ← 1-Click Clean Uninstall Script
-├── check_hysteria.sh             ← 1-Click Auto Checker Script (v2.2)
+├── check_hysteria.sh             ← 1-Click Auto Checker Script
 ├── requirements.txt              ← Python dependencies
 ├── panel/
 │   └── app.py                    ← Flask Web Panel backend code
 ├── config/
 │   ├── config.yaml               ← Hysteria 2 server configuration
-│   ├── hysteria-panel.service    ← Systemd service configuration
+│   ├── hy2-panel.service         ← Systemd service configuration
 │   └── nginx_hysteria_panel      ← Nginx reverse proxy configuration
 └── docs/
     ├── setup-guide-v2.md         ← အသေးစိတ် လက်ဖြင့် ပြင်ဆင်နည်း Guide
