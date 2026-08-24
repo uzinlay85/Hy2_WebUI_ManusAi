@@ -33,6 +33,7 @@ VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင
 | **🚀 Install** (တပ်ဆင်ရန်) | `wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh` |
 | **🔄 Update** (Domain ရိုက်စရာမလို အလိုအလျောက် အဆင့်မြှင့်ရန်) | `wget -O update.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/update_hysteria.sh && bash update.sh` |
 | **🔍 Check** (စစ်ဆေးရန်) | `wget --no-cache -O check.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh?$(date +%s)" && bash check.sh` |
+| **📊 24h Report** (၂၄ နာရီအတွင်း အစီရင်ခံစာ ထုတ်ရန်) | `wget --no-cache -O report24.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh?$(date +%s)" && bash report24.sh` |
 | **🧹 Uninstall** (ဖျက်ရန်) | `wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh && bash uninstall.sh` |
 
 ---
@@ -44,9 +45,11 @@ VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင
 | 📖 [README.md](README.md) | Main Installation & Usage Guide (ဤဖိုင်) |
 | 🔍 [AUDIT.md](AUDIT.md) | **Full Server Health Audit v2.1** — တပ်ဆင်နည်း၊ Output ဖတ်နည်း၊ ဖြေရှင်းနည်း |
 | 🛡️ [WATCHDOG.md](WATCHDOG.md) | **Watchdog Monitoring System** — Auto Restart, Downtime Log, Cron Setup |
+| 📊 [REPORT24.md](REPORT24.md) | **VPS 24-Hour Activity Report** — ၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ အကုန်စစ်ဆေးရေး Tool |
 
 > 💡 **Server စစ်ဆေးလိုပါက** → [AUDIT.md](AUDIT.md) ကို ဖတ်ပါ  
-> 💡 **Auto Monitoring ထည့်လိုပါက** → [WATCHDOG.md](WATCHDOG.md) ကို ဖတ်ပါ
+> 💡 **Auto Monitoring ထည့်လိုပါက** → [WATCHDOG.md](WATCHDOG.md) ကို ဖတ်ပါ  
+> 💡 **၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ စစ်ရန်** → [REPORT24.md](REPORT24.md) ကို ဖတ်ပါ
 
 ---
 
@@ -222,10 +225,12 @@ Hy2_WebUI_ManusAi/
 ├── README.md                     ← Main Documentation (ဤဖိုင်)
 ├── AUDIT.md                      ← Full Server Health Audit v2.1 Guide
 ├── WATCHDOG.md                   ← Watchdog Monitoring System Guide
+├── REPORT24.md                   ← VPS 24-Hour Activity Report Guide
 ├── install_hysteria.sh           ← 1-Click Auto Setup Script (v4.1)
 ├── update_hysteria.sh            ← 1-Click Update Script
-├── uninstall_hysteria.sh         ← 1-Click Clean Uninstall Script
+├── report24.sh                   ← 1-Click 24h Activity Report Tool
 ├── check_hysteria.sh             ← 1-Click Auto Checker Script
+├── uninstall_hysteria.sh         ← 1-Click Clean Uninstall Script
 ├── requirements.txt              ← Python dependencies
 ├── panel/
 │   └── app.py                    ← Flask Web Panel backend code
