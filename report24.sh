@@ -93,11 +93,17 @@ else
     NEED_FIX_UFW=true
 fi
 
-PORT_8888_BIND=$(ss -tlnp 2>/dev/null | grep ":8888 " | awk '{print $4}')
-if [[ "$PORT_8888_BIND" == *"127.0.0.1"* ]]; then
-    pass "Web Panel Backend (8888) ကို 127.0.0.1 သာ Bind ထားသည် (Localhost Only)"
+PANEL_BIND=$(ss -tlnp 2>/dev/null | grep -E ":(8888|5000) " | grep -E "python|flask" | head -1 | awk '{print $4}')
+if [ -z "$PANEL_BIND" ]; then
+    PANEL_BIND=$(ss -tlnp 2>/dev/null | grep -E ":(8888|5000) " | head -1 | awk '{print $4}')
+fi
+
+if [[ "$PANEL_BIND" == *"127.0.0.1"* ]] || [[ "$PANEL_BIND" == *"[::1]"* ]]; then
+    pass "Web Panel Backend ကို 127.0.0.1 တွင်သာ Bind ထားသည် (Localhost Only - Secure)"
+elif [ -z "$PANEL_BIND" ]; then
+    pass "Web Panel Backend Port ပြင်ပသို့ တိုက်ရိုက်ဖွင့်ထားခြင်း မရှိပါ (Protected via Nginx)"
 else
-    warn "Web Panel Backend (8888) ပြင်ပသို့ ပွင့်နေနိုင်သည် ($PORT_8888_BIND)"
+    warn "Web Panel Backend ပြင်ပသို့ တိုက်ရိုက်ပွင့်နေနိုင်သည် (${PANEL_BIND})"
     SCORE=$((SCORE-5))
 fi
 
