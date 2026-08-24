@@ -60,14 +60,21 @@ if [ -f /etc/hysteria/config.yaml ] || command -v hysteria >/dev/null 2>&1 || sy
     fi
 fi
 
-# (B) AmneziaWG / Amnezia Easy
-if pgrep -f "amneziawg" >/dev/null 2>&1 || ip link show | grep -q "awg" || [ -d /opt/amnezia ]; then
-    AWG_PORT=$(wg show awg0 listen-port 2>/dev/null || ss -ulnp 2>/dev/null | grep "amneziawg" | awk '{print $5}' | grep -oP ':\K[0-9]+' | head -1)
-    AWG_DEV=$(ip -br link 2>/dev/null | grep "awg" | awk '{print $1}' | head -1)
-    if pgrep -f "amneziawg" >/dev/null 2>&1 || [ -n "$AWG_DEV" ]; then
-        echo -e "  ${GREEN}✔ AmneziaWG (Easy):${NC} \033[1;32mRUNNING\033[0m (Interface: ${GREEN}${AWG_DEV:-awg0}${NC}, UDP Port: ${GREEN}${AWG_PORT:-58210}${NC})"
+# (B) AmneziaWG / Amnezia Easy (Native & Docker)
+AWG_DOCKER=$(command -v docker >/dev/null 2>&1 && docker ps --format '{{.Names}}' 2>/dev/null | grep -i "amnezia" | head -1 || true)
+if pgrep -f "amneziawg" >/dev/null 2>&1 || ip link show | grep -q "awg" || [ -d /opt/amnezia ] || [ -n "$AWG_DOCKER" ]; then
+    if [ -n "$AWG_DOCKER" ]; then
+        AWG_PORT=$(docker port "$AWG_DOCKER" 2>/dev/null | grep "udp" | awk '{print $3}' | awk -F: '{print $NF}' | head -1)
+        [ -z "$AWG_PORT" ] && AWG_PORT="58210"
+        echo -e "  ${GREEN}✔ AmneziaWG (Easy):${NC} \033[1;32mRUNNING (Docker: $AWG_DOCKER)\033[0m (UDP Port: ${GREEN}${AWG_PORT}/UDP${NC})"
     else
-        echo -e "  ${RED}❌ AmneziaWG (Easy):${NC} \033[1;31mSTOPPED\033[0m"
+        AWG_PORT=$(wg show awg0 listen-port 2>/dev/null || ss -ulnp 2>/dev/null | grep "amneziawg" | awk '{print $5}' | grep -oP ':\K[0-9]+' | head -1)
+        AWG_DEV=$(ip -br link 2>/dev/null | grep "awg" | awk '{print $1}' | head -1)
+        if pgrep -f "amneziawg" >/dev/null 2>&1 || [ -n "$AWG_DEV" ]; then
+            echo -e "  ${GREEN}✔ AmneziaWG (Easy):${NC} \033[1;32mRUNNING\033[0m (Interface: ${GREEN}${AWG_DEV:-awg0}${NC}, UDP Port: ${GREEN}${AWG_PORT:-58210}${NC})"
+        else
+            echo -e "  ${RED}❌ AmneziaWG (Easy):${NC} \033[1;31mSTOPPED\033[0m"
+        fi
     fi
 fi
 
