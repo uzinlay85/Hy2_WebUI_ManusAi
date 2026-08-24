@@ -62,7 +62,7 @@ else
 fi
 
 ROOT_LOGIN=$(echo "$SSH_RUNTIME" | grep -i "^permitrootlogin " | awk '{print $2}' | head -1)
-if [ "$ROOT_LOGIN" = "no" ] || [ "$ROOT_LOGIN" = "prohibit-password" || [ "$ROOT_LOGIN" = "without-password" ] ]; then
+if [ "$ROOT_LOGIN" = "no" ] || [ "$ROOT_LOGIN" = "prohibit-password" ] || [ "$ROOT_LOGIN" = "without-password" ]; then
     pass "Root Direct Login ကို ပိတ်ပင်/ကန့်သတ်ထားသည် (${GREEN}${ROOT_LOGIN}${NC})"
 else
     warn "PermitRootLogin ကို ဖွင့်ထားပါသည် (${ROOT_LOGIN:-yes})"
