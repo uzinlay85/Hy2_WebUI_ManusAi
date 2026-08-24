@@ -31,7 +31,7 @@
 ဆာဗာထဲတွင် အောက်ပါ Command ကို **တစ်ကြိမ်သာ** Run ပေးပါ:
 
 ```bash
-sudo wget --no-cache -O /usr/local/bin/report24 "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh?$(date +%s)" && sudo sed -i 's/\r$//' /usr/local/bin/report24 && sudo chmod +x /usr/local/bin/report24
+sudo curl -fsSL "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh" -o /usr/local/bin/report24 && sudo chmod +x /usr/local/bin/report24
 ```
 
 > ✅ တပ်ဆင်ပြီးပါက အောက်ပါ Command များကို သုံးနိုင်ပါသည်-
@@ -49,7 +49,7 @@ report24 --fix
 ### နည်းလမ်း (၂) - တပ်ဆင်စရာမလိုဘဲ ၁ ချက်နှိပ် တိုက်ရိုက် ကြည့်နည်း (Quick 1-Line)
 
 ```bash
-wget --no-cache -O report24.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh?$(date +%s)" && bash report24.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh)
 ```
 
 ---

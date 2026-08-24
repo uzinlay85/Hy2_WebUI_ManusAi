@@ -1,4 +1,4 @@
-﻿# 🚀 New Server Complete Setup & Hardening Master Guide
+# 🚀 New Server Complete Setup & Hardening Master Guide
 
 > ဆာဗာအသစ် (New Linux VPS) တစ်ခု စတင်ဝယ်ယူပြီးတိုင်း **Hysteria 2 VPN၊ Web Management Panel၊ လုံခြုံရေး အပြည့်အဝ မြှင့်တင်ခြင်း (Security Hardening)၊ ၂၄/၇ Watchdog နှင့် စစ်ဆေးရေး Tools များ** အားလုံးကို အဆင့်ဆင့် စနစ်တကျ တပ်ဆင်အသုံးပြုနိုင်သည့် **Master Roadmap Guide** ဖြစ်ပါသည်။
 
@@ -98,7 +98,7 @@ echo "✅ 24/7 Watchdog installed and active!"
 နေ့စဉ် ဆာဗာလုံခြုံရေး ရမှတ် (Security Score 100/100) နှင့် ၂၄ နာရီအတွင်း သုံးစွဲမှု အစီရင်ခံစာကို အချိန်မရွေး ကြည့်ရှုနိုင်ရန် Tool ကို တပ်ဆင်ပါ:
 
 ```bash
-sudo wget --no-cache -O /usr/local/bin/report24 "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh?$(date +%s)" && sudo chmod +x /usr/local/bin/report24
+sudo curl -fsSL "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh" -o /usr/local/bin/report24 && sudo chmod +x /usr/local/bin/report24
 ```
 
 > ✅ တပ်ဆင်ပြီးပါက **`report24`** ဟု ရိုက်လိုက်ရုံဖြင့် အစီရင်ခံစာ အပြည့်အစုံကို ထုတ်ပေးပါမည်!
