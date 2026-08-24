@@ -1,8 +1,7 @@
 #!/bin/bash
 # ============================================================
-#  Enterprise Linux VPS - Multi-VPN Inspector & Security Suite
-#  Version: 5.0 (All-in-One Multi-Protocol Auto-Discovery Edition)
-#  Supports: Hysteria 2, AmneziaWG, VLESS (3X-UI/Xray), Outline, WireGuard
+#  Enterprise Linux VPS - Master Security & Complete Health Suite
+#  Version: 6.0 (Hardware Resources, Multi-VPN & DevSecOps Suite)
 # ============================================================
 
 clear
@@ -27,13 +26,15 @@ NEED_FIX_FAIL2BAN=false
 AUTO_FLAG="$1"
 
 sep
-echo -e "${BOLD}${YELLOW}       🛡️ ENTERPRISE SERVER SECURITY AUDIT & 24H REPORT       ${NC}"
+echo -e "${BOLD}${YELLOW}       🛡️ ENTERPRISE SERVER SECURITY AUDIT & HEALTH REPORT       ${NC}"
 sep
 
-# ── 1. System Overview & 24h Uptime ──────────────────────────
-echo -e "\n${BOLD}${BLUE}[1] ⏱️ System Health & Uptime (လွန်ခဲ့သော ၂၄ နာရီအတွင်း):${NC}"
+# ── 1. System Health, Uptime & Hardware Resources ────────────
+echo -e "\n${BOLD}${BLUE}[1] ⏱️ System Health & Hardware Resources (စနစ်အရင်းအမြစ်များ):${NC}"
 UPTIME_STR=$(uptime -p 2>/dev/null || uptime)
 info "Server Uptime: ${UPTIME_STR}"
+
+# Reboot check in last 24h
 REBOOTS=$(last reboot --since "24 hours ago" 2>/dev/null | grep -v "wtmp" | head -n -1)
 if [ -z "$REBOOTS" ]; then
     pass "၂၄ နာရီအတွင်း ဆာဗာ Reboot/Crash လုံးဝမဖြစ်ခဲ့ပါ (၁၀၀% တည်ငြိမ်သည်)"
@@ -42,8 +43,85 @@ else
     SCORE=$((SCORE-5))
 fi
 
-# ── 2. Multi-VPN Protocols & Services Discovery ──────────────
-echo -e "\n${BOLD}${BLUE}[2] 🌐 Multi-VPN Services & Protocols Discovery (တပ်ဆင်ထားသမျှ VPN စနစ်များ):${NC}"
+# CPU Load & Cores
+CPU_CORES=$(nproc 2>/dev/null || echo "1")
+CPU_LOAD=$(top -bn1 2>/dev/null | grep "Cpu(s)" | awk '{print $2}' | cut -d. -f1)
+[ -z "$CPU_LOAD" ] && CPU_LOAD="0"
+LAV=$(uptime | awk -F'load average:' '{print $2}' | sed 's/^[ \t]*//')
+echo -e "  • CPU Usage:     ${GREEN}${CPU_LOAD}%${NC} (${CPU_CORES} Cores | Load: ${LAV})"
+
+# RAM Usage
+RAM_TOTAL=$(free -h 2>/dev/null | awk 'NR==2{print $2}')
+RAM_USED=$(free -h 2>/dev/null | awk 'NR==2{print $3}')
+RAM_FREE=$(free -h 2>/dev/null | awk 'NR==2{print $4}')
+RAM_PERCENT=$(free 2>/dev/null | awk 'NR==2{printf "%.0f", $3*100/$2}')
+if [ "$RAM_PERCENT" -gt 90 ]; then
+    warn "RAM Memory:   Total: $RAM_TOTAL | Used: ${RED}${RAM_USED} (${RAM_PERCENT}%)${NC} | Free: $RAM_FREE (သတိပြုရန်)"
+    SCORE=$((SCORE-5))
+else
+    echo -e "  • RAM Memory:    Total: ${GREEN}${RAM_TOTAL}${NC} | Used: ${GREEN}${RAM_USED} (${RAM_PERCENT}%)${NC} | Free: ${GREEN}${RAM_FREE}${NC}"
+fi
+
+# Swap Space
+SWAP_TOTAL=$(free -h 2>/dev/null | awk 'NR==3{print $2}')
+SWAP_USED=$(free -h 2>/dev/null | awk 'NR==3{print $3}')
+SWAP_FREE=$(free -h 2>/dev/null | awk 'NR==3{print $4}')
+echo -e "  • Swap Space:    Total: ${GREEN}${SWAP_TOTAL}${NC} | Used: ${GREEN}${SWAP_USED}${NC} | Free: ${GREEN}${SWAP_FREE}${NC}"
+
+# Disk Storage
+DISK_TOTAL=$(df -h / 2>/dev/null | awk 'NR==2{print $2}')
+DISK_USED=$(df -h / 2>/dev/null | awk 'NR==2{print $3}')
+DISK_FREE=$(df -h / 2>/dev/null | awk 'NR==2{print $4}')
+DISK_PERCENT=$(df / 2>/dev/null | awk 'NR==2{print $5}' | tr -d '%')
+if [ "$DISK_PERCENT" -gt 85 ]; then
+    warn "Disk Storage: Total: $DISK_TOTAL | Used: ${RED}${DISK_USED} (${DISK_PERCENT}%)${NC} | Free: $DISK_FREE (နေရာပြည့်လုနီးပါး)"
+    SCORE=$((SCORE-5))
+    FIXES+=("Disk နေရာလွတ်ရစေရန် 'apt autoremove -y && apt clean && journalctl --vacuum-time=7d' ဖြင့် ရှင်းထုတ်ပါ")
+else
+    echo -e "  • Disk Storage:  Total: ${GREEN}${DISK_TOTAL}${NC} | Used: ${GREEN}${DISK_USED} (${DISK_PERCENT}%)${NC} | Free: ${GREEN}${DISK_FREE}${NC}"
+fi
+
+# ── 2. Core Infrastructure & Services Live Status ────────────
+echo -e "\n${BOLD}${BLUE}[2] ⚙️ Core Infrastructure Services Status (စနစ်ဝန်ဆောင်မှုများ):${NC}"
+
+# Nginx Web Server
+if command -v nginx >/dev/null 2>&1; then
+    if systemctl is-active --quiet nginx 2>/dev/null; then
+        pass "Nginx Web & Reverse Proxy: RUNNING (HTTP/HTTPS)"
+    else
+        fail "Nginx Web Server: STOPPED / FAILED"
+        SCORE=$((SCORE-10))
+    fi
+fi
+
+# Fail2Ban IDS
+if command -v fail2ban-client >/dev/null 2>&1; then
+    if systemctl is-active --quiet fail2ban 2>/dev/null; then
+        pass "Fail2Ban Intrusion Prevention: RUNNING"
+    else
+        warn "Fail2Ban Service: STOPPED"
+        SCORE=$((SCORE-5))
+    fi
+fi
+
+# Docker Engine
+if command -v docker >/dev/null 2>&1; then
+    if systemctl is-active --quiet docker 2>/dev/null; then
+        pass "Docker Container Engine: RUNNING"
+    else
+        warn "Docker Engine: STOPPED"
+    fi
+fi
+
+# Watchdog 24/7 Monitoring Cron
+if crontab -l 2>/dev/null | grep -q "hy2-watchdog"; then
+    pass "24/7 Watchdog Monitoring Cron: ACTIVE (Auto-Restart Enabled)"
+else
+    info "24/7 Watchdog Cron: Not active (Optional: see WATCHDOG.md)"
+fi
+
+# ── 3. Multi-VPN Protocols & Services Discovery ──────────────
+echo -e "\n${BOLD}${BLUE}[3] 🌐 Multi-VPN Services & Protocols Discovery (တပ်ဆင်ထားသမျှ VPN စနစ်များ):${NC}"
 
 # (A) Hysteria 2
 if [ -f /etc/hysteria/config.yaml ] || command -v hysteria >/dev/null 2>&1 || systemctl list-unit-files | grep -q "hysteria"; then
@@ -90,7 +168,7 @@ if systemctl list-unit-files 2>/dev/null | grep -qE "x-ui|xray|v2ray|sing-box" |
         XRAY_PORTS=$(ss -tlnp 2>/dev/null | grep -E "xray|x-ui|sing-box" | awk '{print $4}' | awk -F: '{print $NF}' | tr '\n' ',' | sed 's/,$//')
         echo -e "  ${GREEN}✔ VLESS / ${XRAY_NAME}:${NC} \033[1;32mRUNNING\033[0m (Active Ports: ${XRAY_PORTS:-Listening})"
     else
-        echo -e "  ${YELLOW}⚠️  VLESS / 3X-UI (Xray):${NC} \033[1;33mSTOPPED / INACTIVE\033[0m (တပ်ဆင်ထားသော်လည်း ရပ်တန့်နေသည်)"
+        echo -e "  ${YELLOW}⚠️  VLESS / 3X-UI (Xray):${NC} \033[1;33mSTOPPED / INACTIVE\033[0m"
         XRAY_ERR=$(journalctl -u x-ui -u xray -p err -n 2 --no-pager 2>/dev/null | grep -v "^--" | tail -2)
         [ -n "$XRAY_ERR" ] && echo -e "     ${YELLOW}→ Error Log:${NC} $XRAY_ERR"
     fi
@@ -117,8 +195,8 @@ if systemctl list-unit-files 2>/dev/null | grep -q "wg-quick@" || [ -d /etc/wire
     fi
 fi
 
-# ── 3. SSH Authentication & Access Hardening ─────────────────
-echo -e "\n${BOLD}${BLUE}[3] 🔐 SSH & Access Hardening (ဝင်ရောက်မှု လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
+# ── 4. SSH Authentication & Access Hardening ─────────────────
+echo -e "\n${BOLD}${BLUE}[4] 🔐 SSH & Access Hardening (ဝင်ရောက်မှု လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
 
 SSH_RUNTIME=$(sshd -T 2>/dev/null)
 SSH_PORT=$(echo "$SSH_RUNTIME" | grep -i "^port " | awk '{print $2}' | head -1)
@@ -152,8 +230,8 @@ else
     SCORE=$((SCORE-15))
 fi
 
-# ── 4. Firewall & Attack Surface ─────────────────────────────
-echo -e "\n${BOLD}${BLUE}[4] 🌐 Attack Surface & Firewall Policy (အပေါက်အလမ်းများ စစ်ဆေးခြင်း):${NC}"
+# ── 5. Firewall & Attack Surface ─────────────────────────────
+echo -e "\n${BOLD}${BLUE}[5] 🌐 Attack Surface & Firewall Policy (အပေါက်အလမ်းများ စစ်ဆေးခြင်း):${NC}"
 
 UFW_STATUS=$(ufw status 2>/dev/null | head -1 | awk '{print $2}')
 if [ "$UFW_STATUS" = "active" ]; then
@@ -184,8 +262,8 @@ else
     SCORE=$((SCORE-10))
 fi
 
-# ── 5. Intrusion Detection & 24h Attack Analytics ────────────
-echo -e "\n${BOLD}${BLUE}[5] 🚨 Intrusion Detection & 24h Attack Analytics (တိုက်ခိုက်မှု ကာကွယ်ရေး):${NC}"
+# ── 6. Intrusion Detection & 24h Attack Analytics ────────────
+echo -e "\n${BOLD}${BLUE}[6] 🚨 Intrusion Detection & 24h Attack Analytics (တိုက်ခိုက်မှု ကာကွယ်ရေး):${NC}"
 
 if systemctl is-active --quiet fail2ban 2>/dev/null; then
     pass "Fail2Ban Intrusion Prevention System: RUNNING"
@@ -214,8 +292,8 @@ else
     pass "Password မှားယွင်းရိုက်နှိပ်မှု: ${FAILED_SSH} ကြိမ်သာ ရှိသည် (ပုံမှန် အခြေအနေ)"
 fi
 
-# ── 6. Kernel & DDoS Protection ──────────────────────────────
-echo -e "\n${BOLD}${BLUE}[6] ⚡ Anti-DDoS & Kernel Hardening (Kernel လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
+# ── 7. Kernel & DDoS Protection ──────────────────────────────
+echo -e "\n${BOLD}${BLUE}[7] ⚡ Anti-DDoS & Kernel Hardening (Kernel လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
 
 SYN_COOKIES=$(sysctl -n net.ipv4.tcp_syncookies 2>/dev/null)
 if [ "$SYN_COOKIES" = "1" ]; then
@@ -234,8 +312,8 @@ else
     warn "Google BBR မဖွင့်ရသေးပါ (လက်ရှိ: $BBR_STATUS)"
 fi
 
-# ── 7. Vulnerabilities & Patches ──────────────────────────────
-echo -e "\n${BOLD}${BLUE}[7] 📦 System Patches & Vulnerability Status (လုံခြုံရေး Patch များ):${NC}"
+# ── 8. Vulnerabilities & Patches ──────────────────────────────
+echo -e "\n${BOLD}${BLUE}[8] 📦 System Patches & Vulnerability Status (လုံခြုံရေး Patch များ):${NC}"
 UPGRADES=$(apt list --upgradable 2>/dev/null | grep -c "upgradable" || echo "0")
 info "Update ပြုလုပ်နိုင်သော Package စုစုပေါင်း: ${YELLOW}${UPGRADES}${NC} ခု ရှိပါသည်"
 
@@ -248,8 +326,8 @@ if [ -n "$DOMAIN" ] && [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; t
     pass "SSL/TLS Certificate: သက်တမ်း ${GREEN}${DAYS_LEFT} ရက်${NC} ကျန်ရှိပါသည် (Good)"
 fi
 
-# ── 8. Security Score & Actionable Summary ───────────────────
-echo -e "\n${BOLD}${BLUE}[8] 🏆 DevSecOps Security Score & Hardening Summary:${NC}"
+# ── 9. Security Score & Actionable Summary ───────────────────
+echo -e "\n${BOLD}${BLUE}[9] 🏆 DevSecOps Security Score & Hardening Summary:${NC}"
 sep
 
 if [ "$SCORE" -ge 90 ]; then

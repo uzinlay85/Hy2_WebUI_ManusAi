@@ -1,6 +1,6 @@
-# 🛡️ Enterprise Linux Security Audit, Multi-VPN Inspector & 24h Report (v5.0)
+# 🛡️ Enterprise Linux Security Audit, Hardware Dashboard & Multi-VPN Suite (v6.0)
 
-> Linux System Administrator & DevSecOps Security Engineer တစ်ဦး၏ စံနှုန်းများအတိုင်း **ဆာဗာလုံခြုံရေး အားနည်းချက်များ (Vulnerabilities)၊ တပ်ဆင်ထားသမျှ Multi-VPN စနစ်များ (Hysteria 2, AmneziaWG, VLESS / 3X-UI, Outline, WireGuard) ၏ Ports & Error Status၊ ၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ မှတ်တမ်းများနှင့် လုံခြုံရေး အဆင့်သတ်မှတ်ချက် (Security Score 100/100)** တို့ကို အလိုအလျောက် စစ်ဆေးပြီး **၁ ချက်တည်း Auto-Fix ပြင်ဆင်ပေးနိုင်သော** Enterprise-Grade Security Suite ဖြစ်ပါသည်။
+> Linux System Administrator & DevSecOps Security Engineer တစ်ဦး၏ စံနှုန်းများအတိုင်း **Hardware Resources (CPU, RAM, Swap, Disk %)**၊ **Core Services (Nginx, Fail2ban, Docker, SSH)**၊ **တပ်ဆင်ထားသမျှ Multi-VPN စနစ်များ (Hysteria 2, AmneziaWG, VLESS / 3X-UI, Outline, WireGuard)**၊ **၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ မှတ်တမ်းများနှင့် လုံခြုံရေး အဆင့်သတ်မှတ်ချက် (Security Score 100/100)** တို့ကို အလိုအလျောက် စစ်ဆေးပြီး **၁ ချက်တည်း Auto-Fix ပြင်ဆင်ပေးနိုင်သော** Enterprise-Grade Master Suite ဖြစ်ပါသည်။
 
 ---
 
@@ -8,16 +8,17 @@
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│             🌐 ALL-IN-ONE MULTI-VPN & SECURITY AUDIT SUITE             │
+│        📊 ALL-IN-ONE HARDWARE, MULTI-VPN & SECURITY MASTER SUITE       │
 ├────────────────────────────────────────────────────────────────────────┤
-│ 1. ⏱️ 24h System Health & Uptime (Reboot/Crash Check)                   │
-│ 2. 🌐 Multi-VPN Auto-Discovery (Hy2, AmneziaWG, VLESS/Xray, Outline)   │
-│ 3. 🔐 SSH & Access Hardening (Port 2213, Root Login, Empty Passwords) │
-│ 4. 🧱 Attack Surface & Ports (Exposed Internal APIs, UFW Policy)       │
-│ 5. 🚨 Intrusion Detection (Fail2Ban Jails, 24h Brute-force Attacks)    │
-│ 6. ⚡ Anti-DDoS & Kernel Hardening (SYN Cookies, BBR Optimization)     │
-│ 7. 📦 System Patches & SSL Expiry (Pending CVEs, SSL Days Remaining)   │
-│ 8. 🏆 DevSecOps Security Score (0-100) & Interactive 1-Click Auto-Fix  │
+│ 1. ⏱️ Hardware Resources (CPU Load %, RAM Used/Free, Swap, Disk %)     │
+│ 2. ⚙️ Core Services Live Status (Nginx, Fail2Ban, Docker, Watchdog)   │
+│ 3. 🌐 Multi-VPN Auto-Discovery (Hy2, AmneziaWG, VLESS/Xray, Outline)   │
+│ 4. 🔐 SSH & Access Hardening (Port 2213, Root Login, Empty Passwords) │
+│ 5. 🧱 Attack Surface & Ports (Exposed Internal APIs, UFW Policy)       │
+│ 6. 🚨 Intrusion Detection (Fail2Ban Jails, 24h Brute-force Attacks)    │
+│ 7. ⚡ Anti-DDoS & Kernel Hardening (SYN Cookies, BBR Optimization)     │
+│ 8. 📦 System Patches & SSL Expiry (Pending CVEs, SSL Days Remaining)   │
+│ 9. 🏆 DevSecOps Security Score (0-100) & Interactive 1-Click Auto-Fix  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
