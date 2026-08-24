@@ -45,13 +45,14 @@ VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင
 |:---|:---|
 | 🚀 [NEW_SERVER_GUIDE.md](NEW_SERVER_GUIDE.md) | **ဆာဗာအသစ် Master Setup & Hardening Roadmap (အသစ်စလုပ်သူများအတွက်)** |
 | 📖 [README.md](README.md) | Main Installation & Quick Commands Guide (ဤဖိုင်) |
+| 🔄 [AUTO_UPDATE.md](AUTO_UPDATE.md) | **24/7 Security Auto-Update & System Maintenance Guide** |
 | 🛡️ [REPORT24.md](REPORT24.md) | **Enterprise Security Audit & 24h Activity Report Suite** |
 | 🔍 [AUDIT.md](AUDIT.md) | **Full Server Health Audit v2.1** — တပ်ဆင်နည်း၊ Output ဖတ်နည်း၊ ဖြေရှင်းနည်း |
 | 🐶 [WATCHDOG.md](WATCHDOG.md) | **Watchdog Monitoring System** — Auto Restart, Downtime Log, Cron Setup |
 
 > 🌟 **ဆာဗာအသစ် စတင်ဝယ်ယူပြီးပါက** → [NEW_SERVER_GUIDE.md](NEW_SERVER_GUIDE.md) ကို အရင်ဖတ်ပါ  
-> 💡 **လုံခြုံရေးနှင့် ၂၄ နာရီအစီရင်ခံစာ စစ်ရန်** → [REPORT24.md](REPORT24.md) ကို ဖတ်ပါ  
-> 💡 **ဆာဗာကျန်းမာရေး အသေးစိတ် စစ်ရန်** → [AUDIT.md](AUDIT.md) ကို ဖတ်ပါ
+> 💡 **Auto-Update စနစ် ထည့်သွင်းရန်** → [AUTO_UPDATE.md](AUTO_UPDATE.md) ကို ဖတ်ပါ  
+> 💡 **လုံခြုံရေးနှင့် ၂၄ နာရီအစီရင်ခံစာ စစ်ရန်** → [REPORT24.md](REPORT24.md) ကို ဖတ်ပါ
 
 ---
 
@@ -226,6 +227,7 @@ wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_Manus
 Hy2_WebUI_ManusAi/
 ├── README.md                     ← Main Documentation (ဤဖိုင်)
 ├── NEW_SERVER_GUIDE.md           ← ဆာဗာအသစ် Master Setup & Hardening Guide
+├── AUTO_UPDATE.md                ← 24/7 Security Auto-Update & Maintenance Guide
 ├── REPORT24.md                   ← Enterprise Security Audit & 24h Report
 ├── AUDIT.md                      ← Full Server Health Audit v2.1 Guide
 ├── WATCHDOG.md                   ← Watchdog Monitoring System Guide
