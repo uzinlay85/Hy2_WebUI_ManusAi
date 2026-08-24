@@ -37,22 +37,29 @@ fi
 # ── 2. SSH Authentication & Access Hardening ─────────────────
 echo -e "\n${BOLD}${BLUE}[2] 🔐 SSH & Access Hardening (ဝင်ရောက်မှု လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
 
-# Check SSH Port
-SSH_PORT=$(grep -i "^Port " /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' || echo "22")
+# Query authoritative runtime SSH config using sshd -T
+SSH_RUNTIME=$(sshd -T 2>/dev/null)
+
+# Check SSH Port (Runtime & Listening Sockets)
+SSH_PORT=$(echo "$SSH_RUNTIME" | grep -i "^port " | awk '{print $2}' | head -1)
+if [ -z "$SSH_PORT" ]; then
+    SSH_PORT=$(ss -tlnp 2>/dev/null | grep -E "sshd|systemd-socket-proxyd" | awk '{print $4}' | awk -F: '{print $NF}' | head -1)
+fi
+
 if [ "$SSH_PORT" != "22" ] && [ -n "$SSH_PORT" ]; then
-    pass "Custom SSH Port အသုံးပြုထားသည် (Port: $SSH_PORT - Brute-force လျှော့ချထားသည်)"
+    pass "Custom SSH Port အသုံးပြုထားသည် (Port: ${GREEN}${SSH_PORT}${NC} - Brute-force ကာကွယ်ထားသည်)"
 else
     warn "Default SSH Port (22) ကို အသုံးပြုနေပါသည် (Bot attack ပစ်မှတ်ဖြစ်လွယ်သည်)"
     SCORE=$((SCORE-5))
-    FIXES+=("SSH Port ကို 22 မှ အခြား Port (ဥပမာ 2213) သို့ ပြောင်းလဲပါ")
+    FIXES+=("SSH Port ကို 22 မှ အခြား Custom Port သို့ ပြောင်းလဲပါ")
 fi
 
-# Check Root Login
-ROOT_LOGIN=$(grep -i "^PermitRootLogin" /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}')
+# Check Root Login (Runtime)
+ROOT_LOGIN=$(echo "$SSH_RUNTIME" | grep -i "^permitrootlogin " | awk '{print $2}' | head -1)
 if [ "$ROOT_LOGIN" = "no" ] || [ "$ROOT_LOGIN" = "prohibit-password" ]; then
-    pass "Root Direct Login ကို ပိတ်ပင်/ကန့်သတ်ထားသည် ($ROOT_LOGIN)"
+    pass "Root Direct Login ကို ပိတ်ပင်/ကန့်သတ်ထားသည် (${GREEN}${ROOT_LOGIN}${NC})"
 else
-    warn "PermitRootLogin ကို ဖွင့်ထားပါသည် (Security အားနည်းနိုင်သည်)"
+    warn "PermitRootLogin ကို ဖွင့်ထားပါသည် (${ROOT_LOGIN:-yes})"
     SCORE=$((SCORE-5))
     FIXES+=("sshd_config တွင် 'PermitRootLogin prohibit-password' (သို့မဟုတ် 'no') သို့ ပြောင်းပါ")
 fi
