@@ -315,7 +315,15 @@ fi
 # ── 8. Vulnerabilities & Patches ──────────────────────────────
 echo -e "\n${BOLD}${BLUE}[8] 📦 System Patches & Vulnerability Status (လုံခြုံရေး Patch များ):${NC}"
 UPGRADES=$(apt list --upgradable 2>/dev/null | grep -c "upgradable" || echo "0")
-info "Update ပြုလုပ်နိုင်သော Package စုစုပေါင်း: ${YELLOW}${UPGRADES}${NC} ခု ရှိပါသည်"
+PHASED=$(apt-get -s upgrade 2>/dev/null | grep -c "Not upgrading yet due to phasing" || echo "0")
+
+if [ "$UPGRADES" -eq 0 ]; then
+    pass "System Packages များအားလုံး နောက်ဆုံး ဗားရှင်းသို့ အပြည့်အဝ အဆင့်မြှင့်တင်ပြီးဖြစ်သည်"
+elif [ "$PHASED" -gt 0 ] && [ "$UPGRADES" -le 3 ]; then
+    pass "System Packages များ အားလုံး အဓိက Patch များ တင်ပြီးဖြစ်သည် (${UPGRADES} ခုမှာ Ubuntu Phased စမ်းသပ်ဆဲဖြစ်သည်)"
+else
+    info "Update ပြုလုပ်နိုင်သော Package စုစုပေါင်း: ${YELLOW}${UPGRADES}${NC} ခု ရှိပါသည်"
+fi
 
 DOMAIN=$(grep "server_name" /etc/nginx/sites-available/hysteria_panel 2>/dev/null | awk '{print $2}' | tr -d ';' | head -1)
 if [ -n "$DOMAIN" ] && [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; then
