@@ -1,7 +1,8 @@
 #!/bin/bash
 # ============================================================
-#  Enterprise Linux VPS & Hysteria 2 - Security Audit, 24h Report & Auto-Fix Tool
-#  Version: 4.0 (Self-Healing & Interactive Auto-Fix Edition)
+#  Enterprise Linux VPS - Multi-VPN Inspector & Security Suite
+#  Version: 5.0 (All-in-One Multi-Protocol Auto-Discovery Edition)
+#  Supports: Hysteria 2, AmneziaWG, VLESS (3X-UI/Xray), Outline, WireGuard
 # ============================================================
 
 clear
@@ -41,17 +42,80 @@ else
     SCORE=$((SCORE-5))
 fi
 
-# ── 2. SSH Authentication & Access Hardening ─────────────────
-echo -e "\n${BOLD}${BLUE}[2] 🔐 SSH & Access Hardening (ဝင်ရောက်မှု လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
+# ── 2. Multi-VPN Protocols & Services Discovery ──────────────
+echo -e "\n${BOLD}${BLUE}[2] 🌐 Multi-VPN Services & Protocols Discovery (တပ်ဆင်ထားသမျှ VPN စနစ်များ):${NC}"
 
-# Query authoritative runtime SSH config
+# (A) Hysteria 2
+if [ -f /etc/hysteria/config.yaml ] || command -v hysteria >/dev/null 2>&1 || systemctl list-unit-files | grep -q "hysteria"; then
+    HY2_PORT=$(ss -ulnp 2>/dev/null | grep -E "hysteria" | awk '{print $4}' | awk -F: '{print $NF}' | head -1)
+    [ -z "$HY2_PORT" ] && HY2_PORT=$(grep "listen:" /etc/hysteria/config.yaml 2>/dev/null | head -1 | awk -F: '{print $NF}' | tr -d ' ')
+    if systemctl is-active --quiet hysteria-server 2>/dev/null; then
+        echo -e "  ${GREEN}✔ Hysteria 2 VPN:${NC} \033[1;32mRUNNING\033[0m (Port: ${HY2_PORT:-10443}/UDP)"
+    else
+        echo -e "  ${RED}❌ Hysteria 2 VPN:${NC} \033[1;31mSTOPPED / FAILED\033[0m"
+        HY2_ERR=$(journalctl -u hysteria-server -p err -n 2 --no-pager 2>/dev/null | grep -v "^--" | tail -2)
+        [ -n "$HY2_ERR" ] && echo -e "     ${RED}→ Error:${NC} $HY2_ERR"
+    fi
+fi
+
+# (B) AmneziaWG / Amnezia Easy
+if pgrep -f "amneziawg" >/dev/null 2>&1 || ip link show | grep -q "awg" || [ -d /opt/amnezia ]; then
+    AWG_PORTS=$(ss -ulnp 2>/dev/null | grep -E "amneziawg" | awk '{print $4}' | awk -F: '{print $NF}' | tr '\n' ',' | sed 's/,$//')
+    AWG_DEV=$(ip -br link 2>/dev/null | grep "awg" | awk '{print $1}' | head -1)
+    if pgrep -f "amneziawg" >/dev/null 2>&1 || [ -n "$AWG_DEV" ]; then
+        echo -e "  ${GREEN}✔ AmneziaWG (Easy):${NC} \033[1;32mRUNNING\033[0m (Interface: ${AWG_DEV:-awg0}, UDP Port: ${AWG_PORTS:-Custom})"
+    else
+        echo -e "  ${RED}❌ AmneziaWG (Easy):${NC} \033[1;31mSTOPPED\033[0m"
+    fi
+fi
+
+# (C) VLESS / 3X-UI / Xray
+if systemctl list-unit-files 2>/dev/null | grep -qE "x-ui|xray|v2ray|sing-box" || [ -d /usr/local/x-ui ] || command -v xray >/dev/null 2>&1; then
+    XRAY_RUNNING=false
+    XRAY_NAME="X-UI / Xray"
+    if systemctl is-active --quiet x-ui 2>/dev/null; then XRAY_RUNNING=true; XRAY_NAME="3X-UI Panel & Xray"; fi
+    if systemctl is-active --quiet xray 2>/dev/null; then XRAY_RUNNING=true; XRAY_NAME="Xray Core"; fi
+    if systemctl is-active --quiet sing-box 2>/dev/null; then XRAY_RUNNING=true; XRAY_NAME="Sing-Box Core"; fi
+    
+    if $XRAY_RUNNING; then
+        XRAY_PORTS=$(ss -tlnp 2>/dev/null | grep -E "xray|x-ui|sing-box" | awk '{print $4}' | awk -F: '{print $NF}' | tr '\n' ',' | sed 's/,$//')
+        echo -e "  ${GREEN}✔ VLESS / ${XRAY_NAME}:${NC} \033[1;32mRUNNING\033[0m (Active Ports: ${XRAY_PORTS:-Listening})"
+    else
+        echo -e "  ${YELLOW}⚠️  VLESS / 3X-UI (Xray):${NC} \033[1;33mSTOPPED / INACTIVE\033[0m (တပ်ဆင်ထားသော်လည်း ရပ်တန့်နေသည်)"
+        XRAY_ERR=$(journalctl -u x-ui -u xray -p err -n 2 --no-pager 2>/dev/null | grep -v "^--" | tail -2)
+        [ -n "$XRAY_ERR" ] && echo -e "     ${YELLOW}→ Error Log:${NC} $XRAY_ERR"
+    fi
+fi
+
+# (D) Outline VPN (Shadowbox Docker)
+if command -v docker >/dev/null 2>&1 && docker ps -a --format '{{.Names}}' 2>/dev/null | grep -q "shadowbox"; then
+    if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "shadowbox"; then
+        OUTLINE_PORTS=$(docker port shadowbox 2>/dev/null | awk '{print $3}' | tr '\n' ',' | sed 's/,$//')
+        echo -e "  ${GREEN}✔ Outline VPN (Shadowbox):${NC} \033[1;32mRUNNING (Docker)\033[0m (Ports: ${OUTLINE_PORTS:-Active})"
+    else
+        echo -e "  ${RED}❌ Outline VPN (Shadowbox):${NC} \033[1;31mSTOPPED (Container Exited)\033[0m"
+        OUTLINE_ERR=$(docker logs --tail 2 shadowbox 2>/dev/null)
+        [ -n "$OUTLINE_ERR" ] && echo -e "     ${RED}→ Container Error:${NC} $OUTLINE_ERR"
+    fi
+fi
+
+# (E) Standard WireGuard / OpenVPN
+if systemctl list-unit-files 2>/dev/null | grep -q "wg-quick@" || [ -d /etc/wireguard ]; then
+    if ip link show | grep -q "wg" || systemctl is-active --quiet "wg-quick@*" 2>/dev/null; then
+        echo -e "  ${GREEN}✔ WireGuard VPN:${NC} \033[1;32mRUNNING\033[0m"
+    else
+        echo -e "  ${YELLOW}⚠️  WireGuard VPN:${NC} \033[1;33mINACTIVE\033[0m"
+    fi
+fi
+
+# ── 3. SSH Authentication & Access Hardening ─────────────────
+echo -e "\n${BOLD}${BLUE}[3] 🔐 SSH & Access Hardening (ဝင်ရောက်မှု လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
+
 SSH_RUNTIME=$(sshd -T 2>/dev/null)
 SSH_PORT=$(echo "$SSH_RUNTIME" | grep -i "^port " | awk '{print $2}' | head -1)
 [ -z "$SSH_PORT" ] && SSH_PORT=$(ss -tlnp 2>/dev/null | grep -E "sshd" | awk '{print $4}' | awk -F: '{print $NF}' | head -1)
 
-# Check if Port 22 is open alongside custom port
 PORT22_OPEN=$(ss -tlnp 2>/dev/null | grep -E ":22 " | grep "sshd" || true)
-
 if [ -n "$PORT22_OPEN" ] || [ "$SSH_PORT" = "22" ]; then
     warn "Default SSH Port (22) ပွင့်နေပါသည် (Bot attack ပစ်မှတ်ဖြစ်လွယ်သည်)"
     SCORE=$((SCORE-5))
@@ -71,7 +135,6 @@ else
     NEED_FIX_ROOT=true
 fi
 
-# Empty Password Users Check
 EMPTY_PW=$(awk -F: '($2 == "") {print $1}' /etc/shadow 2>/dev/null)
 if [ -z "$EMPTY_PW" ]; then
     pass "Password မရှိသော (Empty Password) User အကောင့်များ မရှိပါ"
@@ -80,8 +143,8 @@ else
     SCORE=$((SCORE-15))
 fi
 
-# ── 3. Firewall & Attack Surface ─────────────────────────────
-echo -e "\n${BOLD}${BLUE}[3] 🌐 Attack Surface & Firewall Policy (အပေါက်အလမ်းများ စစ်ဆေးခြင်း):${NC}"
+# ── 4. Firewall & Attack Surface ─────────────────────────────
+echo -e "\n${BOLD}${BLUE}[4] 🌐 Attack Surface & Firewall Policy (အပေါက်အလမ်းများ စစ်ဆေးခြင်း):${NC}"
 
 UFW_STATUS=$(ufw status 2>/dev/null | head -1 | awk '{print $2}')
 if [ "$UFW_STATUS" = "active" ]; then
@@ -94,10 +157,7 @@ else
 fi
 
 PANEL_BIND=$(ss -tlnp 2>/dev/null | grep -E ":(8888|5000) " | grep -E "python|flask" | head -1 | awk '{print $4}')
-if [ -z "$PANEL_BIND" ]; then
-    PANEL_BIND=$(ss -tlnp 2>/dev/null | grep -E ":(8888|5000) " | head -1 | awk '{print $4}')
-fi
-
+[ -z "$PANEL_BIND" ] && PANEL_BIND=$(ss -tlnp 2>/dev/null | grep -E ":(8888|5000) " | head -1 | awk '{print $4}')
 if [[ "$PANEL_BIND" == *"127.0.0.1"* ]] || [[ "$PANEL_BIND" == *"[::1]"* ]]; then
     pass "Web Panel Backend ကို 127.0.0.1 တွင်သာ Bind ထားသည် (Localhost Only - Secure)"
 elif [ -z "$PANEL_BIND" ]; then
@@ -115,8 +175,8 @@ else
     SCORE=$((SCORE-10))
 fi
 
-# ── 4. Intrusion Detection & 24h Attack Analytics ────────────
-echo -e "\n${BOLD}${BLUE}[4] 🚨 Intrusion Detection & 24h Attack Analytics (တိုက်ခိုက်မှု ကာကွယ်ရေး):${NC}"
+# ── 5. Intrusion Detection & 24h Attack Analytics ────────────
+echo -e "\n${BOLD}${BLUE}[5] 🚨 Intrusion Detection & 24h Attack Analytics (တိုက်ခိုက်မှု ကာကွယ်ရေး):${NC}"
 
 if systemctl is-active --quiet fail2ban 2>/dev/null; then
     pass "Fail2Ban Intrusion Prevention System: RUNNING"
@@ -145,8 +205,8 @@ else
     pass "Password မှားယွင်းရိုက်နှိပ်မှု: ${FAILED_SSH} ကြိမ်သာ ရှိသည် (ပုံမှန် အခြေအနေ)"
 fi
 
-# ── 5. Kernel & DDoS Protection ──────────────────────────────
-echo -e "\n${BOLD}${BLUE}[5] ⚡ Anti-DDoS & Kernel Hardening (Kernel လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
+# ── 6. Kernel & DDoS Protection ──────────────────────────────
+echo -e "\n${BOLD}${BLUE}[6] ⚡ Anti-DDoS & Kernel Hardening (Kernel လုံခြုံရေး စစ်ဆေးခြင်း):${NC}"
 
 SYN_COOKIES=$(sysctl -n net.ipv4.tcp_syncookies 2>/dev/null)
 if [ "$SYN_COOKIES" = "1" ]; then
@@ -165,8 +225,8 @@ else
     warn "Google BBR မဖွင့်ရသေးပါ (လက်ရှိ: $BBR_STATUS)"
 fi
 
-# ── 6. Vulnerabilities & Patches ──────────────────────────────
-echo -e "\n${BOLD}${BLUE}[6] 📦 System Patches & Vulnerability Status (လုံခြုံရေး Patch များ):${NC}"
+# ── 7. Vulnerabilities & Patches ──────────────────────────────
+echo -e "\n${BOLD}${BLUE}[7] 📦 System Patches & Vulnerability Status (လုံခြုံရေး Patch များ):${NC}"
 UPGRADES=$(apt list --upgradable 2>/dev/null | grep -c "upgradable" || echo "0")
 info "Update ပြုလုပ်နိုင်သော Package စုစုပေါင်း: ${YELLOW}${UPGRADES}${NC} ခု ရှိပါသည်"
 
@@ -178,11 +238,6 @@ if [ -n "$DOMAIN" ] && [ -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; t
     DAYS_LEFT=$(( (EXP_EPOCH - NOW_EPOCH) / 86400 ))
     pass "SSL/TLS Certificate: သက်တမ်း ${GREEN}${DAYS_LEFT} ရက်${NC} ကျန်ရှိပါသည် (Good)"
 fi
-
-# ── 7. VPN Application & Panel Security ──────────────────────
-echo -e "\n${BOLD}${BLUE}[7] 👥 VPN & Web Panel Health (၂၄ နာရီအတွင်း သုံးစွဲမှုမှတ်တမ်း):${NC}"
-CONN_COUNT=$(journalctl -u hysteria-server --since "24 hours ago" --no-pager 2>/dev/null | grep -c "client connected" || echo "0")
-info "၂၄ နာရီအတွင်း VPN ချိတ်ဆက်ခဲ့သော အကြိမ်ရေ စုစုပေါင်း: ${YELLOW}${CONN_COUNT}${NC} ကြိမ်"
 
 # ── 8. Security Score & Actionable Summary ───────────────────
 echo -e "\n${BOLD}${BLUE}[8] 🏆 DevSecOps Security Score & Hardening Summary:${NC}"
@@ -207,7 +262,6 @@ if [ ${#FIXES[@]} -gt 0 ]; then
         echo -e "    $((i+1)). ${FIXES[$i]}"
     done
 
-    # ── 9. Auto-Fix Interactive Execution ────────────────────────
     echo -e "\n${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     DO_FIX=false
     if [ "$AUTO_FLAG" = "--fix" ] || [ "$AUTO_FLAG" = "-f" ] || [ "$AUTO_FLAG" = "fix" ]; then
@@ -221,10 +275,8 @@ if [ ${#FIXES[@]} -gt 0 ]; then
 
     if $DO_FIX; then
         echo -e "\n${BOLD}${CYAN}[AUTO-FIX] စနစ်မှ အားနည်းချက်များကို ချက်ချင်း ပြင်ဆင်ပေးနေပါသည်...${NC}"
-        
         TARGET_PORT="2213"
 
-        # Fix Port 22 & SSH Hardening
         if $NEED_FIX_PORT22 || $NEED_FIX_ROOT; then
             sudo sed -i '/^[# ]*Port 22$/d' /etc/ssh/sshd_config 2>/dev/null || true
             sudo sed -i '/^[# ]*Port 22/d' /etc/ssh/sshd_config 2>/dev/null || true
@@ -247,7 +299,6 @@ EOF
             pass "Port 22 ကို လုံးဝပိတ်ပြီး Port ${TARGET_PORT} သီးသန့် ပြောင်းလဲ Hardening ပြုလုပ်ပြီးပါပြီ"
         fi
 
-        # Fix DDoS
         if $NEED_FIX_DDoS; then
             sudo sed -i '/net.ipv4.tcp_syncookies/d' /etc/sysctl.conf
             echo "net.ipv4.tcp_syncookies = 1" | sudo tee -a /etc/sysctl.conf > /dev/null
@@ -255,7 +306,6 @@ EOF
             pass "SYN Flood Anti-DDoS Protection ကို ဖွင့်လှစ်ပြီးပါပြီ"
         fi
 
-        # Fix Fail2Ban
         if $NEED_FIX_FAIL2BAN; then
             sudo apt install fail2ban -y >/dev/null 2>&1 || true
             sudo systemctl enable --now fail2ban >/dev/null 2>&1 || true
@@ -263,8 +313,6 @@ EOF
         fi
 
         echo -e "\n${BOLD}${GREEN}🎉 AUTO-FIX အားလုံး အောင်မြင်စွာ ပြီးစီးပါပြီ! (Security Score: 100 / 100)${NC}"
-    else
-        info "Auto-Fix ကို ကျော်သွားပါသည် (လိုအပ်ပါက 'report24 --fix' ဖြင့် အချိန်မရွေး ပြင်နိုင်ပါသည်)"
     fi
 else
     echo -e "\n  ${GREEN}${BOLD}🎉 ဂုဏ်ယူပါသည်! သင့်ဆာဗာသည် အကောင်းဆုံး လုံခြုံရေး စံနှုန်းများဖြင့် ကာကွယ်ထားပြီး ဖြစ်ပါသည်!${NC}"

@@ -1,23 +1,23 @@
-# 🛡️ Enterprise Linux Security Audit & 24-Hour VPS Activity Report (v3.0)
+# 🛡️ Enterprise Linux Security Audit, Multi-VPN Inspector & 24h Report (v5.0)
 
-> Linux System Administrator & DevSecOps Security Engineer တစ်ဦး၏ စံနှုန်းများအတိုင်း **ဆာဗာလုံခြုံရေး အားနည်းချက်များ (Vulnerabilities)၊ တိုက်ခိုက်ခံရနိုင်ခြေများ (Attack Surface)၊ ၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ မှတ်တမ်းများနှင့် လုံခြုံရေး အဆင့်သတ်မှတ်ချက် (Security Score & Grade)** တို့ကို အလိုအလျောက် စစ်ဆေးတွက်ချက်ပြီး **ချက်ချင်း ပြင်ဆင်ရန် အကြံပြုချက်များ** ပါဝင်သော Enterprise-Grade Security Suite ဖြစ်ပါသည်။
+> Linux System Administrator & DevSecOps Security Engineer တစ်ဦး၏ စံနှုန်းများအတိုင်း **ဆာဗာလုံခြုံရေး အားနည်းချက်များ (Vulnerabilities)၊ တပ်ဆင်ထားသမျှ Multi-VPN စနစ်များ (Hysteria 2, AmneziaWG, VLESS / 3X-UI, Outline, WireGuard) ၏ Ports & Error Status၊ ၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ မှတ်တမ်းများနှင့် လုံခြုံရေး အဆင့်သတ်မှတ်ချက် (Security Score 100/100)** တို့ကို အလိုအလျောက် စစ်ဆေးပြီး **၁ ချက်တည်း Auto-Fix ပြင်ဆင်ပေးနိုင်သော** Enterprise-Grade Security Suite ဖြစ်ပါသည်။
 
 ---
 
-## 🔍 စစ်ဆေးပေးသော လုံခြုံရေး အဓိက အပိုင်းများ
+## 🔍 စစ်ဆေးပေးသော အဓိက အပိုင်းများ
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│              🔒 ENTERPRISE LINUX SECURITY AUDIT SUITE                  │
+│             🌐 ALL-IN-ONE MULTI-VPN & SECURITY AUDIT SUITE             │
 ├────────────────────────────────────────────────────────────────────────┤
 │ 1. ⏱️ 24h System Health & Uptime (Reboot/Crash Check)                   │
-│ 2. 🔐 SSH & Access Hardening (Port 22, Root Login, Empty Passwords)   │
-│ 3. 🌐 Attack Surface & Ports (Exposed Internal APIs, UFW Policy)       │
-│ 4. 🚨 Intrusion Detection (Fail2Ban Jails, 24h Brute-force Attacks)    │
-│ 5. ⚡ Anti-DDoS & Kernel Hardening (SYN Cookies, BBR Optimization)     │
-│ 6. 📦 System Patches & SSL Expiry (Pending CVEs, SSL Days Remaining)   │
-│ 7. 👥 VPN & Panel Security (Default Admin Password, Connection Count)  │
-│ 8. 🏆 DevSecOps Security Score (0-100) & Actionable Hardening Fixes   │
+│ 2. 🌐 Multi-VPN Auto-Discovery (Hy2, AmneziaWG, VLESS/Xray, Outline)   │
+│ 3. 🔐 SSH & Access Hardening (Port 2213, Root Login, Empty Passwords) │
+│ 4. 🧱 Attack Surface & Ports (Exposed Internal APIs, UFW Policy)       │
+│ 5. 🚨 Intrusion Detection (Fail2Ban Jails, 24h Brute-force Attacks)    │
+│ 6. ⚡ Anti-DDoS & Kernel Hardening (SYN Cookies, BBR Optimization)     │
+│ 7. 📦 System Patches & SSL Expiry (Pending CVEs, SSL Days Remaining)   │
+│ 8. 🏆 DevSecOps Security Score (0-100) & Interactive 1-Click Auto-Fix  │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
