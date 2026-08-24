@@ -120,6 +120,7 @@ fi
 
 # Failed SSH Login Count
 FAILED_SSH=$(journalctl -u ssh -u sshd --since "24 hours ago" --no-pager 2>/dev/null | grep -c "Failed password" || echo "0")
+FAILED_SSH=$(echo "$FAILED_SSH" | tr '\n' ' ' | awk '{sum+=$1+$2} END {print sum+0}')
 if [ "$FAILED_SSH" -gt 50 ]; then
     warn "လွန်ခဲ့သော ၂၄ နာရီအတွင်း Password မှားယွင်းရိုက်နှိပ်မှု (Brute-force စမ်းသပ်မှု): ${RED}${FAILED_SSH} ကြိမ်${NC} တွေ့ရှိရသည်"
     SCORE=$((SCORE-5))
