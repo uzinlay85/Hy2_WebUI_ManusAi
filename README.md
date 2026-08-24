@@ -43,14 +43,15 @@ VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင
 
 | ဖိုင် | အကြောင်းအရာ |
 |:---|:---|
-| 📖 [README.md](README.md) | Main Installation & Usage Guide (ဤဖိုင်) |
+| 🚀 [NEW_SERVER_GUIDE.md](NEW_SERVER_GUIDE.md) | **ဆာဗာအသစ် Master Setup & Hardening Roadmap (အသစ်စလုပ်သူများအတွက်)** |
+| 📖 [README.md](README.md) | Main Installation & Quick Commands Guide (ဤဖိုင်) |
+| 🛡️ [REPORT24.md](REPORT24.md) | **Enterprise Security Audit & 24h Activity Report Suite** |
 | 🔍 [AUDIT.md](AUDIT.md) | **Full Server Health Audit v2.1** — တပ်ဆင်နည်း၊ Output ဖတ်နည်း၊ ဖြေရှင်းနည်း |
-| 🛡️ [WATCHDOG.md](WATCHDOG.md) | **Watchdog Monitoring System** — Auto Restart, Downtime Log, Cron Setup |
-| 📊 [REPORT24.md](REPORT24.md) | **VPS 24-Hour Activity Report** — ၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ အကုန်စစ်ဆေးရေး Tool |
+| 🐶 [WATCHDOG.md](WATCHDOG.md) | **Watchdog Monitoring System** — Auto Restart, Downtime Log, Cron Setup |
 
-> 💡 **Server စစ်ဆေးလိုပါက** → [AUDIT.md](AUDIT.md) ကို ဖတ်ပါ  
-> 💡 **Auto Monitoring ထည့်လိုပါက** → [WATCHDOG.md](WATCHDOG.md) ကို ဖတ်ပါ  
-> 💡 **၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ စစ်ရန်** → [REPORT24.md](REPORT24.md) ကို ဖတ်ပါ
+> 🌟 **ဆာဗာအသစ် စတင်ဝယ်ယူပြီးပါက** → [NEW_SERVER_GUIDE.md](NEW_SERVER_GUIDE.md) ကို အရင်ဖတ်ပါ  
+> 💡 **လုံခြုံရေးနှင့် ၂၄ နာရီအစီရင်ခံစာ စစ်ရန်** → [REPORT24.md](REPORT24.md) ကို ဖတ်ပါ  
+> 💡 **ဆာဗာကျန်းမာရေး အသေးစိတ် စစ်ရန်** → [AUDIT.md](AUDIT.md) ကို ဖတ်ပါ
 
 ---
 
@@ -224,9 +225,10 @@ wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_Manus
 ```
 Hy2_WebUI_ManusAi/
 ├── README.md                     ← Main Documentation (ဤဖိုင်)
+├── NEW_SERVER_GUIDE.md           ← ဆာဗာအသစ် Master Setup & Hardening Guide
+├── REPORT24.md                   ← Enterprise Security Audit & 24h Report
 ├── AUDIT.md                      ← Full Server Health Audit v2.1 Guide
 ├── WATCHDOG.md                   ← Watchdog Monitoring System Guide
-├── REPORT24.md                   ← VPS 24-Hour Activity Report Guide
 ├── install_hysteria.sh           ← 1-Click Auto Setup Script (v4.1)
 ├── update_hysteria.sh            ← 1-Click Update Script
 ├── harden.sh                     ← 1-Click Server Hardening & Auto-Fix Tool
