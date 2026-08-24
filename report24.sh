@@ -318,7 +318,7 @@ UPGRADES=$(apt-get -s upgrade 2>/dev/null | grep -Po '^[0-9]+(?= upgraded)' | he
 UPGRADES=$(echo "$UPGRADES" | tr -dc '0-9')
 UPGRADES=${UPGRADES:-0}
 
-if [ "$UPGRADES" -eq 0 ]; then
+if [ "$UPGRADES" = "0" ] || [ -z "$UPGRADES" ]; then
     pass "System Packages များအားလုံး နောက်ဆုံး ဗားရှင်းသို့ အပြည့်အဝ အဆင့်မြှင့်တင်ပြီးဖြစ်သည် (100% Up to Date)"
 else
     info "Update ပြုလုပ်နိုင်သော Package စုစုပေါင်း: ${YELLOW}${UPGRADES}${NC} ခု ရှိပါသည်"
