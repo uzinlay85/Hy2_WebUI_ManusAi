@@ -32,6 +32,7 @@ VPS Terminal တွင် အောက်ပါ Command တစ်ကြောင
 | :--- | :--- |
 | **🚀 Install** (တပ်ဆင်ရန်) | `wget -O install.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/install_hysteria.sh && bash install.sh` |
 | **🔄 Update** (Domain ရိုက်စရာမလို အလိုအလျောက် အဆင့်မြှင့်ရန်) | `wget -O update.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/update_hysteria.sh && bash update.sh` |
+| **🛡️ Harden** (Port 22 ပိတ်ခြင်းနှင့် Security Auto-Fix ရန်) | `wget --no-cache -O harden.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/harden.sh?$(date +%s)" && bash harden.sh` |
 | **🔍 Check** (စစ်ဆေးရန်) | `wget --no-cache -O check.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/check_hysteria.sh?$(date +%s)" && bash check.sh` |
 | **📊 24h Report** (၂၄ နာရီအတွင်း အစီရင်ခံစာ ထုတ်ရန်) | `wget --no-cache -O report24.sh "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh?$(date +%s)" && bash report24.sh` |
 | **🧹 Uninstall** (ဖျက်ရန်) | `wget -O uninstall.sh https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/uninstall_hysteria.sh && bash uninstall.sh` |
@@ -228,6 +229,7 @@ Hy2_WebUI_ManusAi/
 ├── REPORT24.md                   ← VPS 24-Hour Activity Report Guide
 ├── install_hysteria.sh           ← 1-Click Auto Setup Script (v4.1)
 ├── update_hysteria.sh            ← 1-Click Update Script
+├── harden.sh                     ← 1-Click Server Hardening & Auto-Fix Tool
 ├── report24.sh                   ← 1-Click 24h Activity Report Tool
 ├── check_hysteria.sh             ← 1-Click Auto Checker Script
 ├── uninstall_hysteria.sh         ← 1-Click Clean Uninstall Script
