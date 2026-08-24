@@ -47,10 +47,12 @@ echo -e "\n${BOLD}${BLUE}[2] 🌐 Multi-VPN Services & Protocols Discovery (တ�
 
 # (A) Hysteria 2
 if [ -f /etc/hysteria/config.yaml ] || command -v hysteria >/dev/null 2>&1 || systemctl list-unit-files | grep -q "hysteria"; then
-    HY2_PORT=$(ss -ulnp 2>/dev/null | grep -E "hysteria" | awk '{print $4}' | awk -F: '{print $NF}' | head -1)
-    [ -z "$HY2_PORT" ] && HY2_PORT=$(grep "listen:" /etc/hysteria/config.yaml 2>/dev/null | head -1 | awk -F: '{print $NF}' | tr -d ' ')
+    HY2_PORT=$(grep "^listen:" /etc/hysteria/config.yaml 2>/dev/null | grep -oP ':\K[0-9]+' | head -1)
+    if [ -z "$HY2_PORT" ]; then
+        HY2_PORT=$(ss -ulnp 2>/dev/null | grep "hysteria" | awk '{print $5}' | grep -oP ':\K[0-9]+' | head -1)
+    fi
     if systemctl is-active --quiet hysteria-server 2>/dev/null; then
-        echo -e "  ${GREEN}✔ Hysteria 2 VPN:${NC} \033[1;32mRUNNING\033[0m (Port: ${HY2_PORT:-10443}/UDP)"
+        echo -e "  ${GREEN}✔ Hysteria 2 VPN:${NC} \033[1;32mRUNNING\033[0m (Main Port: ${GREEN}${HY2_PORT:-10443}/UDP${NC})"
     else
         echo -e "  ${RED}❌ Hysteria 2 VPN:${NC} \033[1;31mSTOPPED / FAILED\033[0m"
         HY2_ERR=$(journalctl -u hysteria-server -p err -n 2 --no-pager 2>/dev/null | grep -v "^--" | tail -2)
@@ -60,10 +62,10 @@ fi
 
 # (B) AmneziaWG / Amnezia Easy
 if pgrep -f "amneziawg" >/dev/null 2>&1 || ip link show | grep -q "awg" || [ -d /opt/amnezia ]; then
-    AWG_PORTS=$(ss -ulnp 2>/dev/null | grep -E "amneziawg" | awk '{print $4}' | awk -F: '{print $NF}' | tr '\n' ',' | sed 's/,$//')
+    AWG_PORT=$(wg show awg0 listen-port 2>/dev/null || ss -ulnp 2>/dev/null | grep "amneziawg" | awk '{print $5}' | grep -oP ':\K[0-9]+' | head -1)
     AWG_DEV=$(ip -br link 2>/dev/null | grep "awg" | awk '{print $1}' | head -1)
     if pgrep -f "amneziawg" >/dev/null 2>&1 || [ -n "$AWG_DEV" ]; then
-        echo -e "  ${GREEN}✔ AmneziaWG (Easy):${NC} \033[1;32mRUNNING\033[0m (Interface: ${AWG_DEV:-awg0}, UDP Port: ${AWG_PORTS:-Custom})"
+        echo -e "  ${GREEN}✔ AmneziaWG (Easy):${NC} \033[1;32mRUNNING\033[0m (Interface: ${GREEN}${AWG_DEV:-awg0}${NC}, UDP Port: ${GREEN}${AWG_PORT:-58210}${NC})"
     else
         echo -e "  ${RED}❌ AmneziaWG (Easy):${NC} \033[1;31mSTOPPED\033[0m"
     fi
