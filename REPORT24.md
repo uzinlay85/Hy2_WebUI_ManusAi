@@ -1,4 +1,4 @@
-﻿# 🛡️ Enterprise Linux Security Audit & 24-Hour VPS Activity Report (v3.0)
+# 🛡️ Enterprise Linux Security Audit & 24-Hour VPS Activity Report (v3.0)
 
 > Linux System Administrator & DevSecOps Security Engineer တစ်ဦး၏ စံနှုန်းများအတိုင်း **ဆာဗာလုံခြုံရေး အားနည်းချက်များ (Vulnerabilities)၊ တိုက်ခိုက်ခံရနိုင်ခြေများ (Attack Surface)၊ ၂၄ နာရီအတွင်း ဖြစ်ပျက်ခဲ့သမျှ မှတ်တမ်းများနှင့် လုံခြုံရေး အဆင့်သတ်မှတ်ချက် (Security Score & Grade)** တို့ကို အလိုအလျောက် စစ်ဆေးတွက်ချက်ပြီး **ချက်ချင်း ပြင်ဆင်ရန် အကြံပြုချက်များ** ပါဝင်သော Enterprise-Grade Security Suite ဖြစ်ပါသည်။
 
@@ -30,13 +30,17 @@
 ဆာဗာထဲတွင် အောက်ပါ Command ကို **တစ်ကြိမ်သာ** Run ပေးပါ:
 
 ```bash
-sudo wget -O /usr/local/bin/report24 https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh && sudo chmod +x /usr/local/bin/report24
+sudo wget --no-cache -O /usr/local/bin/report24 "https://raw.githubusercontent.com/uzinlay85/Hy2_WebUI_ManusAi/main/report24.sh?$(date +%s)" && sudo sed -i 's/\r$//' /usr/local/bin/report24 && sudo chmod +x /usr/local/bin/report24
 ```
 
-> ✅ တပ်ဆင်ပြီးပါက Terminal ဘယ်နေရာကမဆို **`report24`** ဟု ရိုက်လိုက်ရုံဖြင့် အစီရင်ခံစာနှင့် လုံခြုံရေး ရမှတ်ကို ချက်ချင်း တွက်ချက်ပေးပါမည်!
+> ✅ တပ်ဆင်ပြီးပါက အောက်ပါ Command များကို သုံးနိုင်ပါသည်-
 
 ```bash
+# ၁။ စစ်ဆေးပြီး အားနည်းချက်တွေ့ပါက Auto-Fix ပြင်မလားဟု မေးမြန်းပေးမည့်ပုံစံ:
 report24
+
+# ၂။ စစ်ဆေးပြီး အားနည်းချက်အားလုံးကို မေးခွန်းမမေးဘဲ တိုက်ရိုက် Auto-Fix လုပ်မည့်ပုံစံ:
+report24 --fix
 ```
 
 ---
