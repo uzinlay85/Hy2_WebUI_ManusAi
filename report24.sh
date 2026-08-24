@@ -314,8 +314,9 @@ fi
 
 # ── 8. Vulnerabilities & Patches ──────────────────────────────
 echo -e "\n${BOLD}${BLUE}[8] 📦 System Patches & Vulnerability Status (လုံခြုံရေး Patch များ):${NC}"
-UPGRADES=$(apt list --upgradable 2>/dev/null | grep -v "^Listing" | grep -c "/" || echo "0")
-UPGRADES=$(echo "$UPGRADES" | awk '{print $1+0}')
+UPGRADES=$(apt-get -s upgrade 2>/dev/null | grep -Po '^[0-9]+(?= upgraded)' | head -1 || true)
+UPGRADES=$(echo "$UPGRADES" | tr -dc '0-9')
+UPGRADES=${UPGRADES:-0}
 
 if [ "$UPGRADES" -eq 0 ]; then
     pass "System Packages များအားလုံး နောက်ဆုံး ဗားရှင်းသို့ အပြည့်အဝ အဆင့်မြှင့်တင်ပြီးဖြစ်သည် (100% Up to Date)"
