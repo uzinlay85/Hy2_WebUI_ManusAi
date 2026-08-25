@@ -24,6 +24,8 @@ SCORE=100
 FIXES=()
 NEED_FIX_PORT22=false
 NEED_FIX_ROOT=false
+NEED_FIX_SSH_KEYS=false
+NEED_FIX_SSH_PERMS=false
 NEED_FIX_UFW=false
 NEED_FIX_DDoS=false
 NEED_FIX_FAIL2BAN=false
@@ -223,8 +225,68 @@ if [ "$ROOT_LOGIN" = "no" ] || [ "$ROOT_LOGIN" = "prohibit-password" ] || [ "$RO
 else
     warn "PermitRootLogin ကို ဖွင့်ထားပါသည် (${ROOT_LOGIN:-yes})"
     SCORE=$((SCORE-5))
-    FIXES+=("sshd_config တွင် 'PermitRootLogin prohibit-password' သို့ ပြောင်းပါ")
+    FIXES+=("sshd_config တွင် 'PermitRootLogin without-password' သို့ ပြောင်းပါ")
     NEED_FIX_ROOT=true
+fi
+
+# SSH Public Key Authentication Status
+PUBKEY_AUTH=$(echo "$SSH_RUNTIME" | grep -i "^pubkeyauthentication " | awk '{print $2}' | head -1)
+if [ "$PUBKEY_AUTH" = "yes" ] || [ -z "$PUBKEY_AUTH" ]; then
+    pass "SSH Public Key Authentication: ENABLED (Pubkey Login ဖွင့်ထားသည်)"
+else
+    warn "SSH Public Key Authentication ပိတ်နေပါသည် (${PUBKEY_AUTH:-no})"
+    SCORE=$((SCORE-10))
+    FIXES+=("SSH PubkeyAuthentication ကို 'yes' သို့ ဖွင့်လှစ်ပါ")
+    NEED_FIX_SSH_KEYS=true
+fi
+
+# SSH Directory & Key File Permissions Integrity (StrictModes Check)
+SSH_PERM_OK=true
+SSH_KEY_FOUND=false
+
+# Check Root .ssh
+if [ -d /root/.ssh ]; then
+    ROOT_SSH_PERM=$(stat -c "%a" /root/.ssh 2>/dev/null)
+    [ "$ROOT_SSH_PERM" != "700" ] && SSH_PERM_OK=false
+    if [ -f /root/.ssh/authorized_keys ]; then
+        SSH_KEY_FOUND=true
+        ROOT_KEY_PERM=$(stat -c "%a" /root/.ssh/authorized_keys 2>/dev/null)
+        [ "$ROOT_KEY_PERM" != "600" ] && SSH_PERM_OK=false
+    fi
+fi
+
+# Check /home/* .ssh
+for hdir in /home/*; do
+    if [ -d "$hdir" ]; then
+        uname=$(basename "$hdir")
+        hperm=$(stat -c "%a" "$hdir" 2>/dev/null)
+        howner=$(stat -c "%U" "$hdir" 2>/dev/null)
+        [ "$howner" != "$uname" ] && SSH_PERM_OK=false
+        [ "$hperm" = "777" ] && SSH_PERM_OK=false
+
+        if [ -d "$hdir/.ssh" ]; then
+            sperm=$(stat -c "%a" "$hdir/.ssh" 2>/dev/null)
+            sowner=$(stat -c "%U" "$hdir/.ssh" 2>/dev/null)
+            [ "$sperm" != "700" ] && SSH_PERM_OK=false
+            [ "$sowner" != "$uname" ] && SSH_PERM_OK=false
+            if [ -f "$hdir/.ssh/authorized_keys" ]; then
+                SSH_KEY_FOUND=true
+                kperm=$(stat -c "%a" "$hdir/.ssh/authorized_keys" 2>/dev/null)
+                kowner=$(stat -c "%U" "$hdir/.ssh/authorized_keys" 2>/dev/null)
+                [ "$kperm" != "600" ] && SSH_PERM_OK=false
+                [ "$kowner" != "$uname" ] && SSH_PERM_OK=false
+            fi
+        fi
+    fi
+done
+
+if $SSH_PERM_OK; then
+    pass "SSH Keys & Permissions Integrity: OK (700/600 Strict Modes Compliant)"
+else
+    warn "SSH Key ဖိုဒါ Permissions/Ownership မမှန်ပါ (Key Login ပျက်စီး/ငြင်းပယ်ခံရနိုင်သည်)"
+    SCORE=$((SCORE-10))
+    FIXES+=("SSH Key & Directory Permissions များကို 700/600 နှင့် User Ownership သို့ ပြုပြင်ပါ")
+    NEED_FIX_SSH_PERMS=true
 fi
 
 EMPTY_PW=$(awk -F: '($2 == "") {print $1}' /etc/shadow 2>/dev/null)
@@ -376,26 +438,54 @@ if [ ${#FIXES[@]} -gt 0 ]; then
         echo -e "\n${BOLD}${CYAN}[AUTO-FIX] စနစ်မှ အားနည်းချက်များကို ချက်ချင်း ပြင်ဆင်ပေးနေပါသည်...${NC}"
         TARGET_PORT="2213"
 
-        if $NEED_FIX_PORT22 || $NEED_FIX_ROOT; then
+        if $NEED_FIX_PORT22 || $NEED_FIX_ROOT || $NEED_FIX_SSH_KEYS || $NEED_FIX_SSH_PERMS; then
             sudo sed -i '/^[# ]*Port 22$/d' /etc/ssh/sshd_config 2>/dev/null || true
             sudo sed -i '/^[# ]*Port 22/d' /etc/ssh/sshd_config 2>/dev/null || true
             sudo sed -i '/^[# ]*PermitRootLogin/d' /etc/ssh/sshd_config 2>/dev/null || true
             sudo mkdir -p /etc/ssh/sshd_config.d/
             cat << EOF | sudo tee /etc/ssh/sshd_config.d/99-safenet-hardening.conf > /dev/null
 Port ${TARGET_PORT}
-PermitRootLogin prohibit-password
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+PermitRootLogin without-password
 PasswordAuthentication yes
 X11Forwarding no
 MaxAuthTries 5
 ClientAliveInterval 30
 ClientAliveCountMax 10
 EOF
+            # Auto-repair permissions for /root and /home/* users
+            sudo mkdir -p /root/.ssh && sudo chmod 700 /root/.ssh
+            [ -f /root/.ssh/authorized_keys ] && sudo chmod 600 /root/.ssh/authorized_keys
+            sudo chown -R root:root /root/.ssh
+
+            for hdir in /home/*; do
+                if [ -d "$hdir" ]; then
+                    uname=$(basename "$hdir")
+                    sudo chown "$uname:$uname" "$hdir"
+                    sudo chmod 755 "$hdir"
+                    if [ -d "$hdir/.ssh" ]; then
+                        sudo chmod 700 "$hdir/.ssh"
+                        sudo chown -R "$uname:$uname" "$hdir/.ssh"
+                        if [ -f "$hdir/.ssh/authorized_keys" ]; then
+                            sudo chmod 600 "$hdir/.ssh/authorized_keys"
+                            # Sync fallback key to root if root key is empty
+                            if [ ! -s /root/.ssh/authorized_keys ]; then
+                                sudo cp "$hdir/.ssh/authorized_keys" /root/.ssh/authorized_keys
+                                sudo chmod 600 /root/.ssh/authorized_keys
+                                sudo chown -R root:root /root/.ssh
+                            fi
+                        fi
+                    fi
+                fi
+            done
+
             sudo ufw allow ${TARGET_PORT}/tcp >/dev/null 2>&1 || true
             sudo ufw delete allow 22/tcp >/dev/null 2>&1 || true
             sudo ufw delete allow 22 >/dev/null 2>&1 || true
             sudo ufw reload >/dev/null 2>&1 || true
             sudo systemctl restart ssh || sudo systemctl restart sshd || true
-            pass "Port 22 ကို လုံးဝပိတ်ပြီး Port ${TARGET_PORT} သီးသန့် ပြောင်းလဲ Hardening ပြုလုပ်ပြီးပါပြီ"
+            pass "SSH Key Permissions (700/600), Pubkey Auth နှင့် Port ${TARGET_PORT} သီးသန့် Hardening ပြုလုပ်ပြီးပါပြီ"
         fi
 
         if $NEED_FIX_DDoS; then

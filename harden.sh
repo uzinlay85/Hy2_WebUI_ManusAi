@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # ============================================================
 #  Enterprise 1-Click Server Hardening & Security Auto-Fix Tool
 #  Version: 1.0 (Auto-Fixes Port 22, SSH, UFW, Fail2Ban, DDoS)
@@ -30,14 +30,41 @@ sudo sed -i '/^[# ]*PermitRootLogin/d' /etc/ssh/sshd_config
 sudo mkdir -p /etc/ssh/sshd_config.d/
 cat << EOF | sudo tee /etc/ssh/sshd_config.d/99-safenet-hardening.conf > /dev/null
 Port ${TARGET_SSH_PORT}
-PermitRootLogin prohibit-password
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+PermitRootLogin without-password
 PasswordAuthentication yes
 X11Forwarding no
 MaxAuthTries 5
 ClientAliveInterval 30
 ClientAliveCountMax 10
 EOF
-pass "SSH Config ကို Port ${TARGET_SSH_PORT} သီးသန့်ဖြင့် Hardening လုပ်ပြီးပါပြီ"
+
+# Repair StrictModes SSH key permissions
+sudo mkdir -p /root/.ssh && sudo chmod 700 /root/.ssh
+[ -f /root/.ssh/authorized_keys ] && sudo chmod 600 /root/.ssh/authorized_keys
+sudo chown -R root:root /root/.ssh
+
+for hdir in /home/*; do
+    if [ -d "$hdir" ]; then
+        uname=$(basename "$hdir")
+        sudo chown "$uname:$uname" "$hdir"
+        sudo chmod 755 "$hdir"
+        if [ -d "$hdir/.ssh" ]; then
+            sudo chmod 700 "$hdir/.ssh"
+            sudo chown -R "$uname:$uname" "$hdir/.ssh"
+            if [ -f "$hdir/.ssh/authorized_keys" ]; then
+                sudo chmod 600 "$hdir/.ssh/authorized_keys"
+                if [ ! -s /root/.ssh/authorized_keys ]; then
+                    sudo cp "$hdir/.ssh/authorized_keys" /root/.ssh/authorized_keys
+                    sudo chmod 600 /root/.ssh/authorized_keys
+                    sudo chown -R root:root /root/.ssh
+                fi
+            fi
+        fi
+    fi
+done
+pass "SSH Config နှင့် SSH Key Permissions (700/600) ကို အပြီးသတ် Hardening လုပ်ပြီးပါပြီ"
 
 info "၂။ Firewall (UFW) တွင် Port 22 ကို ဖျက်ပစ်ပြီး Port ${TARGET_SSH_PORT} သာ ခွင့်ပြုနေပါသည်..."
 sudo ufw allow ${TARGET_SSH_PORT}/tcp >/dev/null 2>&1 || true
