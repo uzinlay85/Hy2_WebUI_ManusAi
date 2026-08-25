@@ -4,6 +4,11 @@
 #  Version: 6.0 (Hardware Resources, Multi-VPN & DevSecOps Suite)
 # ============================================================
 
+# Auto-elevate to root if run as normal user (e.g. zinko)
+if [ "$EUID" -ne 0 ]; then
+    exec sudo bash "$0" "$@"
+fi
+
 clear
 CYAN='\033[0;36m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 RED='\033[0;31m'; BLUE='\033[0;34m'; MAGENTA='\033[0;35m'
